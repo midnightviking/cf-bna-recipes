@@ -1,9 +1,8 @@
-import {db} from '$lib/server/db';
+import { getDb, getDbInitError } from '$lib/server/db';
 import { cookbooks, cookbook_recipes, recipes as recipesTable } from '$lib/server/schema.js';
 import { eq, asc } from 'drizzle-orm';
 
 function errorResponse(error) {
-  console.error(error);
   return new Response(JSON.stringify({ error: error.message || error.toString() }), {
     status: 500,
     headers: { 'Content-Type': 'application/json' }
@@ -11,26 +10,26 @@ function errorResponse(error) {
 }
 
 async function getCookbookWithRecipes(cookbookId) {
-  try {
-    const cb = (await db.select().from(cookbooks).where(eq(cookbooks.id, cookbookId)))[0];
-    if (!cb) return null;
-    const recipes = await db
-      .select({
-        ...recipesTable,
-        ordering: cookbook_recipes.ordering
-      })
-      .from(cookbook_recipes)
-      .leftJoin(recipesTable, eq(cookbook_recipes.recipe_id, recipesTable.id))
-      .where(eq(cookbook_recipes.cookbook_id, cookbookId))
-      .orderBy(asc(cookbook_recipes.ordering), asc(recipesTable.title));
-    return { ...cb, recipes };
-  } catch (error) {
-    throw error;
-  }
+  const db = await getDb();
+  const cb = (await db.select().from(cookbooks).where(eq(cookbooks.id, cookbookId)))[0];
+  if (!cb) return null;
+  const recipes = await db
+    .select({
+      ...recipesTable,
+      ordering: cookbook_recipes.ordering
+    })
+    .from(cookbook_recipes)
+    .leftJoin(recipesTable, eq(cookbook_recipes.recipe_id, recipesTable.id))
+    .where(eq(cookbook_recipes.cookbook_id, cookbookId))
+    .orderBy(asc(cookbook_recipes.ordering), asc(recipesTable.title));
+  return { ...cb, recipes };
 }
 
 export async function GET() {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const allCookbooks = await db.select().from(cookbooks);
     const result = await Promise.all(allCookbooks.map(cb => getCookbookWithRecipes(cb.id)));
     return new Response(JSON.stringify(result), {
@@ -44,6 +43,7 @@ export async function GET() {
 export async function POST({ request } = {}) {
   const data = await request.json();
   try {
+    const db = await getDb();
     const [inserted] = await db.insert(cookbooks).values({
       name: data.name,
       description: data.description,
@@ -71,6 +71,7 @@ export async function POST({ request } = {}) {
 export async function PUT({ request } = {}) {
   const data = await request.json();
   try {
+    const db = await getDb();
     await db.update(cookbooks).set({
       name: data.name,
       description: data.description,
@@ -98,6 +99,7 @@ export async function PUT({ request } = {}) {
 export async function DELETE({ request } = {}) {
   const { id } = await request.json();
   try {
+    const db = await getDb();
     await db.delete(cookbook_recipes).where(eq(cookbook_recipes.cookbook_id, id));
     await db.delete(cookbooks).where(eq(cookbooks.id, id));
     return new Response(JSON.stringify({ success: true }), {

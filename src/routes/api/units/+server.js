@@ -1,9 +1,8 @@
-import {db} from '$lib/server/db';
+import { getDb, getDbInitError } from '$lib/server/db';
 import {units} from '$lib/server/schema'
 import { eq } from 'drizzle-orm';
 
 function errorResponse(error) {
-  console.error(error);
   return new Response(JSON.stringify({ error: error.message || error.toString() }), {
     status: 500,
     headers: { 'Content-Type': 'application/json' }
@@ -12,6 +11,9 @@ function errorResponse(error) {
 
 export async function GET() {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const _units = await db.select().from(units).all();
     return new Response(JSON.stringify(_units), {
       headers: { 'Content-Type': 'application/json' }
@@ -24,6 +26,9 @@ export async function GET() {
 
 export async function POST({ request}) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const { name, conversion_unit, conversion_threshold, conversion_formula } = await request.json();
     const [inserted] = await db.insert(units).values({
       name,
@@ -42,6 +47,9 @@ export async function POST({ request}) {
 
 export async function PUT({ request}) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const { id, name, conversion_unit, conversion_threshold, conversion_formula } = await request.json();
     await db.update(units)
       .set({
@@ -61,6 +69,9 @@ export async function PUT({ request}) {
 
 export async function DELETE({ request}) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const { id } = await request.json();
     await db.delete(units).where(eq(units.id, id));
     return new Response(JSON.stringify({ success: true }), {

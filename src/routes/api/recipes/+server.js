@@ -1,39 +1,38 @@
-import {db} from '$lib/server/db';
+import { getDb, getDbInitError } from '$lib/server/db';
 import { recipes, recipe_ingredients, ingredients as ingredientsTable, units as unitsTable } from '$lib/server/schema.js';
 import { eq } from 'drizzle-orm';
 
 function errorResponse(error) {
-  console.error(error);
   return new Response(JSON.stringify({ error: error.message || error.toString() }), {
     status: 500,
     headers: { 'Content-Type': 'application/json' }
   });
 }
 
-async function getRecipeWithIngredients( recipeId) {
-  try {
-    const _recipe = (await db.select().from(recipes).where(eq(recipes.id, recipeId)))[0];
-    if (!_recipe) return null;
-    const ingredients = await db
-      .select({
-        ingredient_id: recipe_ingredients.ingredient_id,
-        name: ingredientsTable.name,
-        quantity: recipe_ingredients.quantity,
-        unit_id: unitsTable.id,
-        unit_name: unitsTable.name
-      })
-      .from(recipe_ingredients)
-      .leftJoin(ingredientsTable, eq(recipe_ingredients.ingredient_id, ingredientsTable.id))
-      .leftJoin(unitsTable, eq(recipe_ingredients.unit, unitsTable.id))
-      .where(eq(recipe_ingredients.recipe_id, recipeId));
-    return { ..._recipe, ingredients };
-  } catch (error) {
-    throw error;
-  }
+async function getRecipeWithIngredients(recipeId) {
+  const db = await getDb();
+  const _recipe = (await db.select().from(recipes).where(eq(recipes.id, recipeId)))[0];
+  if (!_recipe) return null;
+  const ingredients = await db
+    .select({
+      ingredient_id: recipe_ingredients.ingredient_id,
+      name: ingredientsTable.name,
+      quantity: recipe_ingredients.quantity,
+      unit_id: unitsTable.id,
+      unit_name: unitsTable.name
+    })
+    .from(recipe_ingredients)
+    .leftJoin(ingredientsTable, eq(recipe_ingredients.ingredient_id, ingredientsTable.id))
+    .leftJoin(unitsTable, eq(recipe_ingredients.unit, unitsTable.id))
+    .where(eq(recipe_ingredients.recipe_id, recipeId));
+  return { ..._recipe, ingredients };
 }
 
 export async function GET() {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const allRecipes = await db.select().from(recipes);
     const result = await Promise.all(allRecipes.map(r => getRecipeWithIngredients(r.id)));
     return new Response(JSON.stringify(result), {
@@ -46,6 +45,9 @@ export async function GET() {
 
 export async function POST(request = {}) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const data = await request.json();
     const [inserted] = await db.insert(recipes).values({
       title: data.title,

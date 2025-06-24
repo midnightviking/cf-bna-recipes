@@ -4,19 +4,30 @@ import { env } from '$env/dynamic/private';
 
 const isProduction = env.NODE_ENV === 'production';
 
-let db;
+let dbInitError = null;
+let db = null;
 
-if (isProduction) {
-	// Use drizzle-orm/d1 for D1 in production
-	const { drizzle } = await import('drizzle-orm/d1');
-	db = drizzle(env.DB); // D1 bindings are injected at runtime (Cloudflare Workers)
-} else {
-	// Use drizzle-orm/libsql for local development
-	const { drizzle } = await import('drizzle-orm/libsql');
-	const databaseUrl = env.DATABASE_URL;
-	if (!databaseUrl) throw new Error('DATABASE_URL is not set');
-	const client = createClient({ url: databaseUrl });
-	db = drizzle(client, { schema });
+export async function getDb() {
+	if (db) return db;
+	try {
+		if (isProduction) {
+			const { drizzle } = await import('drizzle-orm/d1');
+			if (!env.DB) throw new Error('D1 binding DB is not available in env');
+			db = drizzle(env.DB);
+		} else {
+			const { drizzle } = await import('drizzle-orm/libsql');
+			const databaseUrl = env.DATABASE_URL;
+			if (!databaseUrl) throw new Error('DATABASE_URL is not set');
+			const client = createClient({ url: databaseUrl });
+			db = drizzle(client, { schema });
+		}
+		return db;
+	} catch (err) {
+		dbInitError = err;
+		throw err;
+	}
 }
 
-export { db };
+export function getDbInitError() {
+	return dbInitError;
+}
