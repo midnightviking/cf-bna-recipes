@@ -1,6 +1,6 @@
 <script>
 	import Button from "@smui/button";
-  import recipe_import from "$lib/recipe_import.json";
+  // import recipe_import from "$lib/recipe_import.json";
 	import { onMount } from "svelte";
   
   let display = "";
