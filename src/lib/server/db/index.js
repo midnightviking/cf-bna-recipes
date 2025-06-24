@@ -9,7 +9,7 @@ let db;
 if (isProduction) {
 	// Use drizzle-orm/d1 for D1 in production
 	const { drizzle } = await import('drizzle-orm/d1');
-	db = drizzle(env.context.DB, { schema }); // D1 bindings are injected at runtime (Cloudflare Workers)
+	db = drizzle(env.DB); // D1 bindings are injected at runtime (Cloudflare Workers)
 } else {
 	// Use drizzle-orm/libsql for local development
 	const { drizzle } = await import('drizzle-orm/libsql');
