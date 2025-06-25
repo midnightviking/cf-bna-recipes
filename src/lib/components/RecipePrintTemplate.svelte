@@ -1,8 +1,7 @@
 <script>
     import Paper, { Title, Content } from '@smui/paper';
     import DataTable, { Head, Body, Row, Cell, Label } from '@smui/data-table';
-	import { onMount } from 'svelte';
-	  
+	  import { onMount } from 'svelte';
 
     let {recipe, scale, db_units} = $props();
 
@@ -20,8 +19,29 @@
         }
       } 
     }
-    // display_unit = (display_unit !== "")? `<span><sup>${display_unit}</sup></span>`:"";
-    let result = (Math.round((y * value) * 4) / 4) + " " + display_unit ;
+
+    let v = (Math.round((y * value) * 4) / 4);
+    let remaind = v.toString().split('.');
+
+    if(remaind.length > 1){
+      let r = "."+remaind[1];
+      switch(remaind[1]){
+        case "25":
+          r = "¼"
+          break;
+        case "5":
+          r = "½";
+          break;
+        case "75":
+          r = "¾";
+          break;
+      }
+
+      v = `${remaind[0] > 0? remaind[0]:""}<span class="fraction-display">${r}</span>`;
+
+    }
+
+    let result = `${v} <span class="display-unit">${display_unit}</span>`;
     return result;
   }
 
@@ -104,7 +124,7 @@
           <Cell>{ingredient.unit_name}</Cell>
           {#each scale as servings,i}
             <Cell >
-              {                  
+              {@html                 
                 calculateServings(servings, ingredient.quantity, (i!==0)?ingredient.unit_name:null)
               }
             </Cell>
@@ -139,7 +159,7 @@
     <div class="recipe-block">
       <div class="block-header">
         <h4>
-          substitutions:
+          Substitutions:
         </h4>
       </div>
       <div class="block-content" style="padding:0;">
@@ -161,11 +181,21 @@
       font-size:1.5rem;
       margin:0.35em 0;
     }
+    
+    :global(.fraction-display){
+      font-size:1.15rem;
+      padding-left:0.1rem;
+    }
+
+    :global(.display-unit){
+      font-size:0.75rem;
+      color:#666;
+    }
   }
   .info-area{
     margin:1.5rem 0;
     width:fit-content;
-    
+    font-family: 'Roboto';
     ul{
       margin:0;
       padding: 0;
@@ -175,7 +205,7 @@
 
       li{
         display: flex;
-        gap:1rem;
+        gap:.5rem;
         align-items: center;
         justify-items: start;
         justify-content: flex-start;
@@ -187,7 +217,7 @@
           // font-size:1.1rem;
           padding:0;
           margin:0;
-          min-width: 100px;
+          min-width: 70px;
           line-height:2rem;
           font-weight: bold;
         }
@@ -208,6 +238,7 @@
   }
   
   .recipe-block{
+    font-family: 'Roboto';
     .block-header{
       background:rgba(0,0,0,0.15);
       padding:0.1rem 0.5rem;
