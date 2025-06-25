@@ -254,6 +254,7 @@
     }
     .block-content{
       padding:.2rem .25rem;
+      white-space: pre-line;
     }
   }
   
