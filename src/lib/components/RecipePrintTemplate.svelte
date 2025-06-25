@@ -191,6 +191,10 @@
       font-size:0.75rem;
       color:#666;
     }
+
+    :global(.mdc-data-table){
+      border-bottom:2px solid #222;
+    }
   }
   .info-area{
     margin:1.5rem 0;
@@ -265,4 +269,5 @@
     }
     
   }
+
 </style>
