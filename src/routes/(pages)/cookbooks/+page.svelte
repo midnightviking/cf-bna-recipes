@@ -200,7 +200,7 @@
 					>
 					<a
 						class="mdc-button"
-						href="/cookbooks/servings/{cookbook.id}"
+						href="/menu/{cookbook.id}"
 						color="secondary">Print outs</a
 					>
 					<div class="cookbook-sort">

@@ -54,7 +54,7 @@ export async function PUT(request = {}) {
   }
 }
 
-export async function DELETE(request = {}) {
+export async function DELETE({ request}) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;

@@ -3,7 +3,7 @@
 	import RecipePrintTemplate from "$lib/components/RecipePrintTemplate.svelte";
 	import { page } from "$app/stores";
 	import { get } from "svelte/store";
-	import "../../styles.scss";
+	// import "../../styles.scss";
 	import PrintPdf, { Page } from "svelte-printpdf";
 	import Button from "@smui/button";
 	import Select, { Option } from "@smui/select";

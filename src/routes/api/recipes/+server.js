@@ -43,7 +43,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request = {}) {
+export async function POST({ request }) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
@@ -81,8 +81,11 @@ export async function POST(request = {}) {
   }
 }
 
-export async function PUT(request = {}) {
+export async function PUT({ request }) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const data = await request.json();
     await db.update(recipes).set({
       title: data.title,
@@ -96,6 +99,7 @@ export async function PUT(request = {}) {
       substitutions: data.substitutions,
       initialServings: data.initialServings
     }).where(eq(recipes.id, data.id));
+
     await db.delete(recipe_ingredients).where(eq(recipe_ingredients.recipe_id, data.id));
     if (Array.isArray(data.ingredients)) {
       for (const ing of data.ingredients) {
@@ -116,8 +120,11 @@ export async function PUT(request = {}) {
   }
 }
 
-export async function DELETE(request  = {}) {
+export async function DELETE({ request }) {
   try {
+    const dbInitError = getDbInitError();
+    if (dbInitError) throw dbInitError;
+    const db = await getDb();
     const { id } = await request.json();
     await db.delete(recipe_ingredients).where(eq(recipe_ingredients.recipe_id, id));
     await db.delete(recipes).where(eq(recipes.id, id));

@@ -1,0 +1,19 @@
+.form-on-top{
+	// position:fixed;
+	// z-index:14;
+
+
+	// bottom:-100%;
+	// opacity: 0;
+	// animation:cubic-bezier(1, 0, 0, 1) paper-ontop 1s forwards;
+	// transition:all;
+	// width: 70%;
+	
+}
+
+@keyframes paper-ontop {
+	to{
+		top:20px;
+		opacity:1;
+	}
+}

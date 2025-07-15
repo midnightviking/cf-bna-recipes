@@ -3,7 +3,7 @@
     import DataTable, { Head, Body, Row, Cell, Label } from '@smui/data-table';
 	  import { onMount } from 'svelte';
 
-    let {recipe, scale, db_units} = $props();
+    export let {recipe, scale, db_units} = $props();
 
   const calculateServings = (_yield, value, unit_name=null)=>{
     let y = _yield/recipe.initialServings;

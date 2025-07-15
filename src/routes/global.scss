@@ -1,0 +1,82 @@
+@use '@material/top-app-bar/variables' as top-app-bar-variables;
+
+* {
+	box-sizing: border-box;
+  }
+  
+html {
+	height: 100%;
+	width: 100%;
+	// position: fixed;
+	body{
+		margin:0;
+		padding:0;
+		font-family: 'Roboto', Arial, Helvetica, sans-serif;
+		line-height: 1.5rem;
+	}
+  }
+:root{
+	--mdc-theme-primary: #ff3e00;
+}
+.recipe-layout{	
+	height:100%;
+	display:grid;
+	grid-template-areas:"topbar"
+						"content";
+	grid-template-rows: top-app-bar-variables.$row-height 1fr;
+	grid-template-columns: 1fr;
+	position:relative;
+	align-items: start;
+	
+	.mdc-drawer{
+		position: sticky;
+		display: flex;
+		height: 350px;
+		
+		grid-area:aside;
+		max-width:300px;
+		align-items: start;
+		top:1rem;
+		top:calc(top-app-bar-variables.$row-height + 1rem);
+
+		.mdc-top-app-bar__title{
+			padding-left:0;
+		}
+
+	}
+	.topbar{
+		grid-area:topbar;
+	}
+}
+
+
+.app-content{
+	grid-area: content;	
+    position: relative;
+	
+}
+
+main.main-content {
+	position:relative;
+    overflow: auto;
+    padding: 16px;
+    height: 100%;
+    box-sizing: border-box; 
+	padding:1rem;
+	// margin-top:  top-app-bar-variables.$row-height;
+	padding-bottom: top-app-bar-variables.$row-height;
+	overflow: auto;
+}
+
+h4{
+	font-family: 'Roboto';
+}
+
+.mdc-top-app-bar--short-collapsed{
+	.mdc-top-app-bar__section{
+		 display:none;
+		&:first-child{
+			display: block;
+		}
+	}
+}
