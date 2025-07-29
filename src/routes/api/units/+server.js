@@ -1,5 +1,5 @@
 import { getDb, getDbInitError } from '$lib/server/db';
-import {units} from '$lib/server/schema'
+import { units } from '$lib/server/db/schema.js';
 import { eq } from 'drizzle-orm';
 
 function errorResponse(error) {

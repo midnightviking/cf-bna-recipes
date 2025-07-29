@@ -1,151 +1,168 @@
 <script>
-import Button, { Icon } from "@smui/button";
-import Textfield from "@smui/textfield";
-import Select, { Option } from "@smui/select";
-import LayoutGrid, { InnerGrid, Cell } from '@smui/layout-grid';
-import List, { Item, Graphic, Separator, Text, Meta, SecondaryText,PrimaryText, Subheader } from '@smui/list';
-import {mdiDelete, mdiPlus, mdiClose, mdiKeyboardReturn, mdiPencilPlus} from '@mdi/js'
-import IconButton from "@smui/icon-button";
-import { invalidate, invalidateAll } from "$app/navigation";
-import { getActionBannerState } from "$lib/action-banner-state.svelte";
-	import { getContext, onMount } from "svelte";
-import RfExtensions from "$lib/components/recipe_form/rf_extensions.svelte";
-const itemTypes = ["bread", "veggie", "soup", "entree", "dessert","protein"];
-const categories = ["breakfast","veggies", "starches", "entrees", "dessert"];
-
-let new_ingredient = $state("");
-let new_quantity = $state("");
-let new_unit = $state("");
-let ingSelected = $state("");
-let {
-	id = null,
-	title = "",
-	minTemp = "",
-	itemType = "",
-	portionSize = "",
-	calories = "",
-	category = "",
-	instructions = "",
-	ccp = "",
-	substitutions = "",
-	initialServings = 100,
-	ingredients = [],
-	selectedExtensions = [],
-	alternates=[]
-} = $props();
-let ingredient_list = $state(ingredients);
-let allIngredients = getContext("all_ingredients");
-let units = getContext("units");
-
-const addIngredientToRecipe = () => {
-	if (
-		!new_ingredient ||
-		new_unit === "" ||
-		new_quantity <= 0 ||
-		new_quantity === ""
-	)
-		return;
-	const ing = allIngredients.find((i) => i.id == new_ingredient);
-	const unit = units.find((u) => u.id == new_unit);
-	if (!ing || !unit) return;
-
-	// Prevent duplicates
-	if (ingredients?.some((i) => i.ingredient_id == new_unit)) return;
-	let newIng = {
-			ingredient_id: ing.id,
-			name: ing.name,
-			quantity: new_quantity,
-			unit_id: unit.id,
-			unit_name: unit.name,
-		};
-	ingredient_list = [...ingredient_list,newIng] ?? [newIng];
 	
-	//reset
-	new_ingredient = "";
-	new_unit = "";
-	new_quantity = "";
-};
+	import Button, { Icon } from "@smui/button";
+	import Textfield from "@smui/textfield";
+	import Select, { Option } from "@smui/select";
+	import LayoutGrid, { InnerGrid, Cell } from '@smui/layout-grid';
+	import Dialog, {Title, Content, Actions, Header} from "@smui/dialog";
+	import List, { Item, Graphic, Separator, Text, Meta, SecondaryText,PrimaryText, Subheader } from '@smui/list';
+	import {mdiDelete, mdiPlus, mdiClose, mdiKeyboardReturn, mdiPencilPlus} from '@mdi/js'
+	import IconButton from "@smui/icon-button";
+	import { invalidate, invalidateAll } from "$app/navigation";
+	//* later db additions?*/
+	const itemTypes = ["bread", "veggie", "soup", "entree", "dessert","protein"];
+	const categories = ["breakfast","veggies", "starches", "entrees", "dessert"];
+	
+	let new_ingredient = $state("");
+	let new_quantity = $state("");
+	let new_unit = $state("");
+	let ingSelected = $state("");
+	let {
+		id = null,
+		title = "",
+		minTemp = "",
+		itemType = "",
+		portionSize = "",
+		calories = "",
+		category = "",
+		instructions = "",
+		ccp = "",
+		substitutions = "",
+		initialServings = 100,
+		ingredients = [],
+		allIngredients,
+		units,
+		selectedExtensions = [],
+		alternates=[],
+		editIndex,
+		open = $bindable(false),
+		closeForm = ()=>{},
+		afterSave = ()=>{}, 
+	} = $props();
+	
+	let ingredient_list = $state(ingredients);
+	
+	const addIngredientToRecipe = () => {
+		if (
+			!new_ingredient ||
+			new_unit === "" ||
+			new_quantity <= 0 ||
+			new_quantity === ""
+		)
+			return;
+		const ing = allIngredients.find((i) => i.id == new_ingredient);
+		const unit = units.find((u) => u.id == new_unit);
+		if (!ing || !unit) return;
 
-const removeIngredientFromRecipe = (index) => {
-	if (ingredient_list.length > 0) {
-		ingredient_list.splice(index, 1);
-	}
-};
-
-async function saveRecipe() {
-	const recipe = {
-		id: id ? id : undefined,
-		title,
-		minTemp,
-		itemType,
-		portionSize,
-		calories,
-		category,
-		instructions,
-		ccp,
-		substitutions,
-		initialServings,
-		ingredients: ingredient_list.map((i) => ({
-			ingredient_id: i.ingredient_id,
-			quantity: i.quantity,
-			unit_id: i.unit_id,
-		})),
-		extensions: selectedExtensions,
-		alternates: alternates.map(a => ({ ...a }))
+		// Prevent duplicates
+		if (ingredients?.some((i) => i.ingredient_id == new_unit)) return;
+		let newIng = {
+				ingredient_id: ing.id,
+				name: ing.name,
+				quantity: new_quantity,
+				unit_id: unit.id,
+				unit_name: unit.name,
+			};
+		ingredient_list = [...ingredient_list,	newIng] ?? [newIng];
+		
+		//reset
+		new_ingredient = "";
+		new_unit = "";
+		new_quantity = "";
 	};
 
-	if (id) {
-		await fetch("/api/recipes", {
-			method: "PUT",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ ...recipe, id: id }),
-		}).then(async (res)=>{
-			//success, now do the next thing
-			console.log('Success')
-		});
-	} else {
-		await fetch("/api/recipes", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(recipe),
-		}).then(async (res)=>{
-			//success, now do the next thing
-			console.log('Success')
-		});
+	const removeIngredientFromRecipe = (index) => {
+		if (ingredient_list.length > 0) {
+			ingredient_list.splice(index, 1);
+		}
+	};
+
+	async function saveRecipe() {
+		const recipe = {
+			id: id ? id : undefined,
+			title,
+			minTemp,
+			itemType,
+			portionSize,
+			calories,
+			category,
+			instructions,
+			ccp,
+			substitutions,
+			initialServings,
+			ingredients: ingredient_list.map((i) => ({
+				ingredient_id: i.ingredient_id,
+				quantity: i.quantity,
+				unit_id: i.unit_id,
+			})),
+			extensions: selectedExtensions,
+			alternates: alternates.map(a => ({
+				original_ingredient: a.original_ingredient,
+				alternate_ingredient: a.alternate_ingredient,
+				extensions: a.extensions
+			}))
+		};
+	
+		if (id) {
+			await fetch("/api/recipes", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ...recipe, id: id }),
+			}).then(async (res)=>{
+
+				afterSave(recipe);
+			});
+		} else {
+			await fetch("/api/recipes", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(recipe),
+			}).then(async (res)=>{
+				
+				afterSave(recipe);
+			});
+		}
+		
 	}
-}
 
-function resetForm() {
-	id = null;
-	title = "";
-	minTemp = "";
-	itemType = "";
-	portionSize = "";
-	calories = "";
-	category = "";
-	instructions = "";
-	ccp = "";
-	substitutions = "";
-	initialServings = 100;
-	ingredients = [];
-	ingredient_list = [];
-}
-
-const actions = getActionBannerState();
-
-onMount(()=>{
-	actions.setActions([
-		{label:"Update", icon: "", func: saveRecipe},
-		{label:"Cancel", icon: "", func: ()=>{console.log("Test Cancel")}}
-	]);
-})
-
+	function resetForm() {
+		id = null;
+		title = "";
+		minTemp = "";
+		itemType = "";
+		portionSize = "";
+		calories = "";
+		category = "";
+		instructions = "";
+		ccp = "";
+		substitutions = "";
+		initialServings = 100;
+		ingredients = [];
+		ingredient_list = [];
+	}
+	
 </script>
+<Dialog
+	bind:open
+	scrimClickAction=""
+	escapeKeyAction=""
+	aria-labelledby="recipe-dialog-title"
+	aria-describedby="recipe-dialog-content"
+	fullscreen
+>
 
-	<h3>
-		{id ? "Edit " + title + "" : "Add"} Recipe
-	</h3>
-	<div id="recipe-dialog-content">
+	<Header>
+		<Title id="recipe-dialog-title">
+			{id ? "Edit " + title + "" : "Add"} Recipe
+			
+		</Title>
+		<IconButton action="close" class="material-icons" onclick={()=>{resetForm(); closeForm();}}>
+			<Icon tag="svg" viewBox="0 0 24 24">
+				<path fill="currentColor" d={mdiClose} />
+			</Icon>
+		</IconButton>
+	</Header>
+	<Content id="recipe-dialog-content">
 		<div class="recipe-form" style="width:100%;">
 
 			<LayoutGrid>
@@ -381,11 +398,57 @@ onMount(()=>{
 					</div>
 				</Cell>
 				<Cell span={12}>
-					<RfExtensions
-						recipe_id={id}
-						ingredient_list={ingredient_list}
-						alternates={alternates}
-					/>
+					<strong>Dietary Extenstions:</strong>
+					<div class="recipe-ingredients-section">
+						
+						<div class="add-ingredient-row">
+							<InnerGrid>
+	
+								<Cell  spanDevices={{ desktop: 4, tablet: 8, phone: 4 }}>
+	
+									<Select
+										key={(ing) => `${ing ? ing.ingredient_id : ""}`}
+										
+										label="Select Ingredient to Replace"
+										>
+										<!-- <Option value="">Select ingredient</Option> -->
+										{#each ingredient_list as ing}
+											<Option value={ing.ingredient_id}>{ing.name}</Option>
+										{/each}
+									</Select>
+								</Cell>
+								<Cell  spanDevices={{ desktop: 2, tablet: 4, phone: 2}} style="align-self:middle;">
+									<span>
+										replaced with
+									</span>
+								</Cell>
+								<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 2 }}>
+									<Select
+										key={(ing) => `${ing ? ing.name : ""}`}
+										
+										label="Select Ingredient"
+										>
+										<!-- <Option value="">Select ingredient</Option> -->
+										{#each allIngredients as ing}
+										<Option value={ing.id}>{ing.name}</Option>
+										{/each}
+									</Select>
+								</Cell>
+	
+								<Cell span={2} spanDevices={{ desktop: 2, tablet: 12, phone: 4}} align="middle" style="align-content:end;">
+									<div class="end-button">
+	
+										<Button onclick={addIngredientToRecipe} variant="raised">
+											<Icon tag="svg" viewBox="0 0 24 24">
+												<path fill="currentColor" d={mdiPlus} />
+											</Icon>
+											Add
+										</Button>
+									</div>
+								</Cell>
+						</InnerGrid>
+						</div>
+					</div>
 				</Cell>
 				<Cell span={12}>
 					<Textfield
@@ -401,12 +464,12 @@ onMount(()=>{
 		
 	</div>
 	
-	</div>
-	<div>
+	</Content>
+	<Actions>
 		<Button onclick={saveRecipe} defaultAction>{id ? "Update" : "Save"}</Button>
 		<Button onclick={()=>{resetForm(); closeForm();}} color="secondary">Cancel</Button>
-	</div>
-
+	</Actions>
+</Dialog>
 
 
 <style lang="scss">

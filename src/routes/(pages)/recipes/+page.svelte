@@ -1,20 +1,21 @@
 <script>
 	import Fab from "@smui/fab";
 	import Button, { Icon, Label } from "@smui/button";
-	import { invalidate } from "$app/navigation";
+	import { goto, invalidate } from "$app/navigation";
 	import Editable from "$lib/components/Editable.svelte";
-	import RecipeForm from "./RecipeForm.svelte";
+	import RecipeFormDialog from "./RecipeFormDialog.svelte";
 	import Dialog, { Title, Content, Actions } from "@smui/dialog";
 	import DataTable, { Body, Cell, Head, Row } from "@smui/data-table";
 	import { mdiPlus } from "@mdi/js";
+	import { onMount, setContext } from "svelte";
 
 	let { data } = $props();
 	let recipes = $derived(data.recipes);
 	let showform = $state(false);
 	let { units, ingredients } = data;
 
+	
 	let recipe_to_edit = $state({});
-
 	function openForm(recipe = {}) {
 		recipe_to_edit = recipe;
 		showform = true;
@@ -43,6 +44,8 @@
 			}
 		}
 	}
+
+
 </script>
 
 <Fab
@@ -61,7 +64,7 @@
 
 <!-- Destroying the form and recreating it, for now. Better binding on the inputs will avoid this in the future -->
 {#key showform}
-	<RecipeForm
+	<RecipeFormDialog
         open={showform}
 		allIngredients={ingredients}
 		{units}
@@ -79,9 +82,10 @@
 		<p>No recipes found.</p>
 	{/if}
 	{#each recipes as recipe, i}
+    
 		<Editable
 			title={recipe.title}
-			onEdit={() => openForm(recipe)}
+			onEdit={() => goto(`/recipes/edit/${recipe.id}`)}
 			onDelete={() => deleteRecipe(i)}
 		>
 			<div class="recipe-view">

@@ -1,5 +1,28 @@
 // Drizzle ORM schema for SQLite and D1
+import { numeric } from 'drizzle-orm/pg-core';
 import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
+
+export const extensions = sqliteTable('extensions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull().unique(),
+});
+
+export const recipe_extensions = sqliteTable('recipe_extensions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  recipe_id: integer('recipe_id').notNull(),
+  extension_id: integer('extension_id').notNull(),
+});
+
+export const alternate_ingredients = sqliteTable('alternate_ingredients', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  recipe_id: integer('recipe_id').notNull(),
+  original_ingredient: integer('original_ingredient'),
+  alternate_ingredient: integer('alternate_ingredient').notNull(),
+  quantity: numeric('quantity').notNull(),
+  unit_id: integer('unit_id').notNull(),
+  // Store extensions as a comma-separated string of IDs for simplicity
+  extensions: text('extensions').notNull(), // comma-separated extension ids
+});
 
 export const ingredients = sqliteTable('ingredients', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -10,8 +33,8 @@ export const units = sqliteTable('units', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull().unique(),
 	conversion_unit: text('conversion_unit'),
-	conversion_threshold: real('conversion_threshold'),
-	conversion_formula: real('conversion_formula'),
+	conversion_threshold: numeric('conversion_threshold'),
+	conversion_formula: numeric('conversion_formula'),
 });
 
 export const recipes = sqliteTable('recipes', {
@@ -39,7 +62,7 @@ export const recipe_ingredients = sqliteTable('recipe_ingredients', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	recipe_id: integer('recipe_id').notNull(),
 	ingredient_id: integer('ingredient_id').notNull(),
-	quantity: real('quantity').notNull(),
+	quantity: numeric('quantity').notNull(),
 	unit: integer('unit').notNull(),
 });
 

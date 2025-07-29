@@ -1,12 +1,11 @@
-/** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch, params }) {
     return {
-        ingredients: await fetch('/api/ingredients').then((d) => d.json())
+        extensions: await fetch('/api/extensions').then((d) => d.json())
     };
 };
 
 import { getDb, getDbInitError } from '$lib/server/db';
-import { ingredients as ingredientsTable } from '$lib/server/db/schema';
+import { extensions } from '$lib/server/db/schema.js';
 import { eq } from 'drizzle-orm';
 
 /** @satisfies {import('./$types').Actions} */
@@ -21,9 +20,9 @@ export const actions = {
 
         const db = await getDb();
 
-        await db.update(ingredientsTable)
+        await db.update(extensions)
             .set({ name })
-            .where(eq(ingredientsTable.id, id));
+            .where(eq(extensions.id, id));
 
         return { success: true, id, name };
     },
@@ -36,7 +35,7 @@ export const actions = {
 
         const db = await getDb();
 
-        const [inserted] = await db.insert(ingredientsTable).values({ name }).returning();
+        const [inserted] = await db.insert(extensions).values({ name }).returning();
         return { success: true, id: inserted.id, name: inserted.name };
     }
 };

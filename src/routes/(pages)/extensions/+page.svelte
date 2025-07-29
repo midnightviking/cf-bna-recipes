@@ -1,62 +1,64 @@
 <script>
-	import { onMount } from "svelte";
-	import Button, { Icon } from "@smui/button";
-    import Fab from "@smui/fab";
-	import Textfield from "@smui/textfield";
-	import Select from "@smui/select";
+import Fab from '@smui/fab';
+import { mdiPlus } from '@mdi/js';
+
+    import { onMount } from "svelte";
+    import Button, { Icon } from "@smui/button";
+    import Textfield from "@smui/textfield";
+    import Select from "@smui/select";
     import Card, {Content, Actions} from "@smui/card";
     import List, {Item, Text, Graphic, Meta} from "@smui/list";
-    import {mdiCircleEditOutline, mdiDelete, mdiPlus} from "@mdi/js";
-	import { invalidate } from "$app/navigation";
-	let { data, form } = $props();
-	let ingredients = $state([]);
-	ingredients = data?.ingredients;
+    import {mdiCircleEditOutline, mdiDelete} from "@mdi/js";
+    import { invalidate } from "$app/navigation";
+    let { data, form } = $props();
+    let extensions = $state([]);
+    extensions = data?.extensions;
 
-    async function deleteIngredient(id){
-        if(!id) return;
-        await fetch('/api/ingredients', {
-            method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id })
-			}).then((res)=>{
-				if(res.status === 200){
-					ingredients?.splice(index, 1);
-					invalidate();
-				}
-			});
+    function addRestriction() {
+        extensions.unshift({ id: undefined, name: '', editing: true });
     }
 
-    function addIngredient() {
-        ingredients.unshift({ id: undefined, name: '', editing: true });
+    async function deleteRestriction(id){
+        if(!id) return;
+        await fetch('/api/extensions', {
+            method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            }).then((res)=>{
+                if(res.status === 200){
+                    extensions?.splice(index, 1);
+                    invalidate();
+                }
+            });
     }
 
 </script>
-<Fab extended type="button" onclick={addIngredient} style="position:fixed; right:0; bottom:20px; z-index:7">
+<Fab extended type="button" onclick={addRestriction} style="position:fixed; right:0; bottom:20px; z-index:7">
     <Icon tag="svg" viewBox="0 0 24 24">
         <path fill="currentColor" d={mdiPlus} />
     </Icon>
-    <span>Add Ingredient</span>
+    <span>Add Dietary Extension</span>
 </Fab>
-{#if ingredients?.length === 0}
-	<p>Loading ...</p>
+{#if extensions?.length === 0}
+    <p>No dietary extensions added.</p>
 {/if}
 <div class="ingredient-list">
 
-    {#key ingredients}
+    {#key extensions}
     <List class="zebra-list" nonInteractive>
 
-        {#each ingredients as ingredient, i}
+        {#each extensions as restriction, i}
         <Item>
-            {#if ingredient?.editing}
-            <form method="POST" action={ingredient.id ? '?/save': '?/add'}><Text>
+            {#if restriction?.editing}
+            <form method="POST" action={restriction.id ? '?/save': '?/add'}><Text>
                 
                     <button  onclick={() => { /* Optionally save changes here */ }}>
                         Save
                     </button>
                 
-                    <input type="hidden" value={ingredient.id} name="id"/>
+                    <input type="hidden" value={restriction.id} name="id"/>
                     <!-- <input type="text" name="name" value={ingredient.name} /> -->
-                   <Textfield bind:value={ingredient.name}
+                   <Textfield bind:value={restriction.name}
                     variant="outlined"
                     style="width:100%;background-color:#fff; border-color:black; height:40px"
                     helperLine$style="width: 100%;"
@@ -67,7 +69,7 @@
             </form>
             {:else}
                 <Graphic>
-                    <Button onclick={() => {  ingredient.editing = true; }}>
+                    <Button onclick={() => {  restriction.editing = true; }}>
                         <Icon tag="svg" viewBox="0 0 24 24">
                             <path fill="currentColor" d={mdiCircleEditOutline} />
                         </Icon>
@@ -75,18 +77,18 @@
                 </Graphic>
                 <Text>
                     <p>
-                        {ingredient.name}
+                        {restriction.name}
                     </p>
                 </Text>
             
             {/if}
             <Meta>
                 <Button onclick={()=>{
-                    deleteIngredient(ingredient?.id)
+                    deleteRestriction(restriction?.id)
                 }} >
                     <Icon tag="svg" viewBox="0 0 24 24">
-						<path fill="currentColor" d={mdiDelete} />
-					</Icon>
+                        <path fill="currentColor" d={mdiDelete} />
+                    </Icon>
                 </Button>
             </Meta>
         </Item>
