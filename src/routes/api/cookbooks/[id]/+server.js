@@ -1,30 +1,12 @@
 import { getDb, getDbInitError } from '$lib/server/db';
-import { cookbooks, cookbook_recipes, recipes as recipesTable, recipe_ingredients, ingredients as ingredientsTable, units as unitsTable } from '$lib/server/schema.js';
+import { cookbooks, cookbook_recipes,  recipe_ingredients, ingredients as ingredientsTable, units as unitsTable, alternate_ingredients, extensions } from '$lib/server/db/schema.js';
 import { eq, asc } from 'drizzle-orm';
 import { json } from '@sveltejs/kit';
-
+import { getRecipeWithIngredients } from '$lib/server/recipes.js';
 function errorResponse(error) {
   return json({ error: error.message || error.toString() }, { status: 500 });
 }
 
-async function getRecipeWithIngredients(recipeId) {
-  const db = await getDb();
-  const recipe = (await db.select().from(recipesTable).where(eq(recipesTable.id, recipeId)))[0];
-  if (!recipe) return null;
-  const ingredients = await db
-    .select({
-      ingredient_id: recipe_ingredients.ingredient_id,
-      name: ingredientsTable.name,
-      quantity: recipe_ingredients.quantity,
-      unit_id: unitsTable.id,
-      unit_name: unitsTable.name
-    })
-    .from(recipe_ingredients)
-    .leftJoin(ingredientsTable, eq(recipe_ingredients.ingredient_id, ingredientsTable.id))
-    .leftJoin(unitsTable, eq(recipe_ingredients.unit, unitsTable.id))
-    .where(eq(recipe_ingredients.recipe_id, recipeId));
-  return { ...recipe, ingredients };
-}
 
 export async function GET({ params } = {}) {
   try {

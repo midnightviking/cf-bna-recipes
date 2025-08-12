@@ -5,7 +5,7 @@
 	import Select, { Option } from "@smui/select";
 	import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
 	import IconButton, { Icon } from "@smui/icon-button";
-  import {mdiChevronDown, mdiChevronUp} from '@mdi/js'
+  	import {mdiChevronDown, mdiChevronUp} from '@mdi/js'
   
 	let cookbooks = $state([]);
 	let allRecipes = $state([]);

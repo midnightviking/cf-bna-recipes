@@ -1,42 +1,30 @@
-import { getContext, setContext } from 'svelte';
+import { onDestroy } from 'svelte';
+import { writable, get } from 'svelte/store';
 
-/**
- * Manages a collection of action banner items.
- *
- * Each action is an object with the following structure:
- * {
- *   label: {string} - The display label for the action.
- *   icon: {string} - The icon identifier for the action.
- *   func: {Function} - The function to execute when the action is triggered.
- * }
- */
-export class ActionBannerState {
-	actions = $state([]);
-	
-	constructor(){
-		this.actions = [];
-	}
+// Writable store for banner actions (array of { label, func, icon? })
+export const bannerActions = writable([]);
 
-	getActions() {
-		return this.actions;
-	}
-
-	addAction(label, icon, func) {
-		this.actions.push({ label: label, icon: icon, func: func });
-	}
-
-	
-	setActions(actions=[]) {
-		
-		this.actions = actions;
-	}
+export function setBannerActions(actions = []) {
+  bannerActions.set(Array.isArray(actions) ? actions : []);
 }
 
-const ACTIONBANNER = 'ActionBanner';
-export function setActionBannerState() {
-
-	return setContext(ACTIONBANNER, new ActionBannerState());
+export function addBannerAction(action) {
+  if (!action) return;
+  bannerActions.update(list => [...list, action]);
 }
-export function getActionBannerState() {
-	return getContext(ACTIONBANNER);
+
+export function clearBannerActions() {
+  bannerActions.set([]);
+}
+
+// Hook for pages: sets actions and clears them on unmount if unchanged
+export function useBannerActions(actions = []) {
+  setBannerActions(actions);
+  const ref = actions; // reference for comparison
+  onDestroy(() => {
+    const current = get(bannerActions);
+    if (current === ref || (current.length === ref.length && current.every((a,i)=>a===ref[i]))) {
+      clearBannerActions();
+    }
+  });
 }

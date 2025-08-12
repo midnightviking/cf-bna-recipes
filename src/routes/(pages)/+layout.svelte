@@ -7,16 +7,13 @@ import Drawer, { AppContent, Content, Header, Subtitle } from "@smui/drawer";
 import List, { Item, Text } from "@smui/list";
 import IconButton,{Icon} from "@smui/icon-button";
 import Button from "@smui/button";
-import { setContext } from 'svelte';
+import { onMount, setContext } from 'svelte';
 import { mdiBookOpenPageVariant, mdiChefHat, mdiScale, mdiFoodApple, mdiMenu, mdiPeanutOff, mdiFoodForkDrink } from '@mdi/js';
 import ActionBanner from "$lib/components/ActionBanner.svelte";
-import { setActionBannerState } from "$lib/action-banner-state.svelte";
+
 let { children } = $props();
 let isOpen= $state(false);
 let topAppBar = $state(null);
-
-setActionBannerState();
-
 
 </script>
 

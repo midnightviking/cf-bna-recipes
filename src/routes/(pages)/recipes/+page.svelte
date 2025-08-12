@@ -7,8 +7,8 @@
 	import Dialog, { Title, Content, Actions } from "@smui/dialog";
 	import DataTable, { Body, Cell, Head, Row } from "@smui/data-table";
 	import { mdiPlus } from "@mdi/js";
-	import { onMount, setContext } from "svelte";
-
+	import { getContext, onMount, setContext } from "svelte";
+	
 	let { data } = $props();
 	let recipes = $derived(data.recipes);
 	let showform = $state(false);
@@ -45,6 +45,13 @@
 		}
 	}
 
+	import { useBannerActions } from "$lib/action-banner-state.svelte.js";
+
+	const banner_actions = [
+		{ label: "Add Recipe", icon: "", func: () => { goto('recipes/add'); } }
+	];
+
+	useBannerActions(banner_actions);
 
 </script>
 
@@ -52,7 +59,7 @@
 	extended
 	type="button"
 	onclick={() => {
-		showform = true;
+		goto('recipes/add');
 	}}
 	style="position:fixed; right:0; bottom:20px; z-index:7"
 >
@@ -174,8 +181,9 @@
 		width: 100%;
 	}
 
-	:global(.recipe-card) {
+	:global(.editable-card) {
 		margin-bottom: 2rem;
+		border:#ebebeb .25rem solid;
 	}
 
 	.recipe-view {
@@ -184,7 +192,7 @@
 		flex-direction: column;
 		white-space: pre-line;
 		margin-bottom: 1rem;
-
+		
 		.recipe-info {
 			ul {
 				margin: 0;

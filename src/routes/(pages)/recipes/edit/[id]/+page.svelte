@@ -13,7 +13,7 @@
     setContext("all_ingredients", all_ingredients);
     setContext("units", units);
     setContext("extensions", extensions);
-    $inspect(alternates)
+    // $inspect(alternates)
     
 </script>
 

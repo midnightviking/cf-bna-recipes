@@ -68,6 +68,7 @@
 </script>
 
 <style lang="scss">
+	
 	.card-title{
       
       h4{

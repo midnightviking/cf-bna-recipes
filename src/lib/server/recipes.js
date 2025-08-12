@@ -1,6 +1,6 @@
 import { getDb } from '$lib/server/db';
-import { recipes, recipe_ingredients, ingredients as ingredientsTable, units as unitsTable, extensions, recipe_extensions, alternate_ingredients } from '$lib/server/db/schema.js';
-import { eq } from 'drizzle-orm';
+import { recipes, recipe_ingredients, ingredients as ingredientsTable, units as unitsTable, extensions, alternate_ingredients } from '$lib/server/db/schema.js';
+import { eq, inArray } from 'drizzle-orm';
 
 export async function getRecipeWithIngredients(recipeId) {
   const db = await getDb();
@@ -20,22 +20,55 @@ export async function getRecipeWithIngredients(recipeId) {
     .where(eq(recipe_ingredients.recipe_id, recipeId));
     
 
-  // Get extensions for this recipe
-  const extensionRows = await db.select().from(recipe_extensions).where(eq(recipe_extensions.recipe_id, recipeId));
-  const extensionIds = extensionRows.map(r => r.extension_id);
-  // Get extension names
-  let extensionNames = [];
-  if (extensionIds.length > 0) {
-    extensionNames = (await db.select().from(extensions).where(extensions.id.in(extensionIds))).map(r => r.name);
-  }
-
   // Get alternate ingredients for this recipe
-  const alternates = await db.select().from(alternate_ingredients).where(eq(alternate_ingredients.recipe_id, recipeId));
+  const alternates = await db
+    .select({
+      ...alternate_ingredients,
+      alternate_name: ingredientsTable.name,
+      alternate_unit_name: unitsTable.name
+    })
+    .from(alternate_ingredients)
+    .leftJoin(ingredientsTable, eq(alternate_ingredients.alternate_ingredient, ingredientsTable.id))
+    .leftJoin(unitsTable, eq(alternate_ingredients.unit_id, unitsTable.id))
+    .where(eq(alternate_ingredients.recipe_id, recipeId));
   // Parse extensions for each alternate
-  const alternatesWithExtensions = alternates.map(a => ({
-    ...a,
-	  extensions: a.extensions ? a.extensions.split(',').map(Number) : [] // keep property for now for compatibility
-  }));
+  
+  // [extensionName] => { ingredients: []}
+  let extIds = Array.from(
+    new Set(
+      alternates
+        .flatMap(alt => alt.extensions ? alt.extensions.split(',').map(Number) : [])
+    )
+  );
 
-  return { ..._recipe, ingredients, extensions: extensionIds, extensionNames, alternates: alternatesWithExtensions };
+  let extensionNames = (extIds.length > 0) ? 
+    await db.select().from(extensions).where(inArray(extensions.id, extIds)) : [];
+ 
+  extensionNames.forEach(e => {
+    e.ingredients = alternates
+      .filter(a => a.extensions && a.extensions.split(',').map(Number).includes(e.id))
+      .map(a => {
+        const ingredient = ingredients.find(i => i.ingredient_id === a.original_ingredient) || {};
+        return {
+          ...a,
+          original:{
+            ...ingredient,
+          }
+        };
+      });
+  });
+  
+  const alternatesWithExtensions = () => {
+
+    return alternates.map(a => ({
+      ...a,
+      extensions: a.extensions ? a.extensions.split(',').map(Number) : [] // keep property for now for compatibility
+    }));
+  };
+
+
+
+
+
+  return { ..._recipe, ingredients, extensions: extensionNames, alternates: alternatesWithExtensions() };
 }

@@ -1,5 +1,5 @@
 import { getDb, getDbInitError } from '$lib/server/db';
-import { cookbooks, cookbook_recipes, recipes as recipesTable } from '$lib/server/schema.js';
+import { cookbooks, cookbook_recipes, recipes } from '$lib/server/db/schema.js';
 import { eq, asc } from 'drizzle-orm';
 
 function errorResponse(error) {
@@ -13,16 +13,16 @@ async function getCookbookWithRecipes(cookbookId) {
   const db = await getDb();
   const cb = (await db.select().from(cookbooks).where(eq(cookbooks.id, cookbookId)))[0];
   if (!cb) return null;
-  const recipes = await db
+  const recipeRows = await db
     .select({
-      ...recipesTable,
+      ...recipes,
       ordering: cookbook_recipes.ordering
     })
     .from(cookbook_recipes)
-    .leftJoin(recipesTable, eq(cookbook_recipes.recipe_id, recipesTable.id))
+    .leftJoin(recipes, eq(cookbook_recipes.recipe_id, recipes.id))
     .where(eq(cookbook_recipes.cookbook_id, cookbookId))
-    .orderBy(asc(cookbook_recipes.ordering), asc(recipesTable.title));
-  return { ...cb, recipes };
+    .orderBy(asc(cookbook_recipes.ordering), asc(recipes.title));
+  return { ...cb, recipes: recipeRows };
 }
 
 export async function GET() {

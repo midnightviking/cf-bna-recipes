@@ -6,10 +6,12 @@ import LayoutGrid, { InnerGrid, Cell } from '@smui/layout-grid';
 import List, { Item, Graphic, Separator, Text, Meta, SecondaryText,PrimaryText, Subheader } from '@smui/list';
 import {mdiDelete, mdiPlus, mdiClose, mdiKeyboardReturn, mdiPencilPlus} from '@mdi/js'
 import IconButton from "@smui/icon-button";
-import { invalidate, invalidateAll } from "$app/navigation";
-import { getActionBannerState } from "$lib/action-banner-state.svelte";
-	import { getContext, onMount } from "svelte";
+import { goto, invalidate, invalidateAll } from "$app/navigation";
+import { getContext, onMount, setContext } from "svelte";
 import RfExtensions from "$lib/components/recipe_form/rf_extensions.svelte";
+	import { useBannerActions } from "$lib/action-banner-state.svelte";
+
+
 const itemTypes = ["bread", "veggie", "soup", "entree", "dessert","protein"];
 const categories = ["breakfast","veggies", "starches", "entrees", "dessert"];
 
@@ -101,7 +103,7 @@ async function saveRecipe() {
 			body: JSON.stringify({ ...recipe, id: id }),
 		}).then(async (res)=>{
 			//success, now do the next thing
-			console.log('Success')
+			goto("/recipes");
 		});
 	} else {
 		await fetch("/api/recipes", {
@@ -110,7 +112,8 @@ async function saveRecipe() {
 			body: JSON.stringify(recipe),
 		}).then(async (res)=>{
 			//success, now do the next thing
-			console.log('Success')
+			// console.log('Success')
+			goto("/recipes");
 		});
 	}
 }
@@ -131,14 +134,13 @@ function resetForm() {
 	ingredient_list = [];
 }
 
-const actions = getActionBannerState();
+const banner_actions = [
+		{label:id?"Update":"Save", icon: "", func: saveRecipe},
+		{label:"Cancel", icon: "", func: ()=>{goto("/recipes")}}
+	];
 
-onMount(()=>{
-	actions.setActions([
-		{label:"Update", icon: "", func: saveRecipe},
-		{label:"Cancel", icon: "", func: ()=>{console.log("Test Cancel")}}
-	]);
-})
+useBannerActions(banner_actions)
+
 
 </script>
 
