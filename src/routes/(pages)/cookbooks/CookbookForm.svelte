@@ -77,7 +77,7 @@
 
 	function getCookbookRecipesByOrder() {
 		return selectedRecipeIds
-			.map((id) => all_recipes.find((r) => r.id === id))
+			.map((id) => all_recipes.find((r) => r?.id === id))
 			.filter(Boolean);
 	}
 	
