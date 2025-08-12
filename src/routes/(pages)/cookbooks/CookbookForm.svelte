@@ -67,7 +67,11 @@
 	}= $props();
 	const editing = id ? true: false;
 	let selectedRecipeIds = $state([]);
-	selectedRecipeIds = (recipes || []).map((r) => r.id);
+	selectedRecipeIds = (recipes || []).map((r) => {
+		if(r.hasOwnProperty('id')){
+			return r.id;
+		}
+	});
 
 	let all_recipes = getContext("all_recipes");
 

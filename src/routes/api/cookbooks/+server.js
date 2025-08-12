@@ -51,10 +51,11 @@ export async function POST({ request } = {}) {
     }).returning();
     if (Array.isArray(data.recipes)) {
       for (const r of data.recipes) {
+        if (!r || r.id == null) continue; // ignore entries without a valid id
         await db.insert(cookbook_recipes).values({
           cookbook_id: inserted.id,
           recipe_id: r.id,
-          ordering: r.ordering
+          ordering: r.ordering ?? null
         });
       }
     }
@@ -80,10 +81,11 @@ export async function PUT({ request } = {}) {
     await db.delete(cookbook_recipes).where(eq(cookbook_recipes.cookbook_id, data.id));
     if (Array.isArray(data.recipes)) {
       for (const r of data.recipes) {
+        if (!r || r.id == null) continue; // ignore entries without a valid id
         await db.insert(cookbook_recipes).values({
           cookbook_id: data.id,
           recipe_id: r.id,
-          ordering: r.ordering
+          ordering: r.ordering ?? null
         });
       }
     }
