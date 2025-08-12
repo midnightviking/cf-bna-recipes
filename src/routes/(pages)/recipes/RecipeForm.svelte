@@ -262,7 +262,7 @@ useBannerActions(banner_actions);
 							<InnerGrid>
 	
 								<Cell  spanDevices={{ desktop: 4, tablet: 8, phone: 4 }}>
-	
+	<!-- update to combobox later-->
 									<Select
 										key={(ing) => `${ing ? ing.name : ""}`}
 										bind:value={new_ingredient}
@@ -280,6 +280,7 @@ useBannerActions(banner_actions);
 										label="Quantity"
 										type="number"
 										min="0"
+										step="2"
 									/>
 								</Cell>
 								<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 2 }}>
