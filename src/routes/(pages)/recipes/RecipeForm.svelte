@@ -136,10 +136,10 @@ function resetForm() {
 
 const banner_actions = [
 		{label:id?"Update":"Save", icon: "", func: saveRecipe},
-		{label:"Cancel", icon: "", func: ()=>{goto("/recipes")}}
+		{label:"Cancel", icon: "", func: ()=>{history.back()}}
 	];
 
-useBannerActions(banner_actions)
+useBannerActions(banner_actions);
 
 
 </script>
