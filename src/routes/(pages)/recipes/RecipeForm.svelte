@@ -264,7 +264,7 @@ useBannerActions(banner_actions);
 								<Cell  spanDevices={{ desktop: 4, tablet: 8, phone: 4 }}>
 	<!-- update to combobox later-->
 									<Select
-										key={(ing) => `${ing ? ing.name : ""}`}
+										key={(ing) => `${ing ? ing.id : ""}`}
 										bind:value={new_ingredient}
 										label="Select Ingredient"
 										>
