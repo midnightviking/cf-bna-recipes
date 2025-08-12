@@ -68,7 +68,7 @@
 	const editing = id ? true: false;
 	let selectedRecipeIds = $state([]);
 	selectedRecipeIds = (recipes || []).map((r) => {
-		if(r.hasOwnProperty('id')){
+		if(r?.id){
 			return r.id;
 		}
 	});
