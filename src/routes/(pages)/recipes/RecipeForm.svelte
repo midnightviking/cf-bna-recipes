@@ -281,6 +281,8 @@ useBannerActions(banner_actions);
 										type="number"
 										min="0"
 										step="2"
+										input$step="2"
+
 									/>
 								</Cell>
 								<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 2 }}>
