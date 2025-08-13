@@ -1,4 +1,3 @@
-BEGIN TRANSACTION;
 DROP TABLE IF EXISTS "alternate_ingredients";
 CREATE TABLE "alternate_ingredients" (
 	"id"	INTEGER,
@@ -288,7 +287,6 @@ INSERT INTO "ingredients" VALUES (104,'Whole Eggs');
 INSERT INTO "ingredients" VALUES (105,'Worcestershire');
 INSERT INTO "ingredients" VALUES (106,'Yellow Cake Mix');
 INSERT INTO "ingredients" VALUES (107,'Yellow Mustard');
-INSERT INTO "ingredients" VALUES (108,'Magic Powder');
 INSERT INTO "ingredients" VALUES (109,'Bean Cooking Liquid + Water');
 INSERT INTO "ingredients" VALUES (110,'Cumin');
 INSERT INTO "ingredients" VALUES (111,'Potatoes');
@@ -1021,7 +1019,7 @@ Remove from heat and let stand for 10-15 minutes
 Serve hot or hold above 140 degrees','Wash hands before handling food and after handling any raw food, or if any interruptions that may contaminate hands Use clean and sanitized utensils/equipment while prepping/cooking Return ingredients to refrigerated storage if preparation is interrupted','In order of availability:',100,NULL);
 INSERT INTO "recipes" VALUES (16,'ASIAN BEEF','165F','protein','4oz','296 calories','entrees','In large pan,  melt margarine																
 Add diced peppers and onions, sauté, stir frequently 																
-Add sweet &amp; sour sauce and water, heat to 165 degrees.																
+Add sweet & sour sauce and water, heat to 165 degrees.																
 Add ends and pieces and heat in oven to 165 degrees (DO NOT OVERCOOK)																
 Serve hot or hold above 140 degrees																
 																
@@ -1932,4 +1930,3 @@ DROP INDEX IF EXISTS "units_name_unique";
 CREATE UNIQUE INDEX "units_name_unique" ON "units" (
 	"name"
 );
-COMMIT;

@@ -53,7 +53,7 @@
 	let recipe_ingredients = $derived(recipe.ingredients);
 
 	// Normalize protein display with trailing 'g'
-	let displayProtein = $derived(() => {
+	let displayProtein = (() => {
 		if (!recipe?.protein) return '';
 		let val = String(recipe.protein).trim();
 		if (/g$/i.test(val)) return val; // already has g
@@ -125,12 +125,12 @@
 					<span>{recipe.calories}</span>
 				</li>
 			{/if}
-			{#if displayProtein}
+			<!-- {#if recipe?.protein} -->
 				<li>
 					<h3>Protein:</h3>
-					<span>{displayProtein}</span>
+					<span>{displayProtein()}</span>
 				</li>
-			{/if}
+			<!-- {/if} -->
 		</ul>
 	</div>
 
