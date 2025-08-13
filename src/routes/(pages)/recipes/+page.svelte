@@ -119,6 +119,10 @@
 							{recipe?.calories}
 						</li>
 						<li>
+							<strong>Protein:</strong>
+							{recipe?.protein}
+						</li>
+						<li>
 							<strong>Initial Servings:</strong>
 							{recipe?.initialServings}
 						</li>

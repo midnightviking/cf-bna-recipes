@@ -51,6 +51,15 @@
 	};
 
 	let recipe_ingredients = $derived(recipe.ingredients);
+
+	// Normalize protein display with trailing 'g'
+	let displayProtein = $derived(() => {
+		if (!recipe?.protein) return '';
+		let val = String(recipe.protein).trim();
+		if (/g$/i.test(val)) return val; // already has g
+		// If it's purely numeric, append space + g
+		return `${val} g`;
+	});
 	// If an extension is selected and has alternatives, replace matching ingredients
 	if (
 		extension &&
@@ -114,6 +123,12 @@
 				<li>
 					<h3>Calories:</h3>
 					<span>{recipe.calories}</span>
+				</li>
+			{/if}
+			{#if displayProtein}
+				<li>
+					<h3>Protein:</h3>
+					<span>{displayProtein}</span>
 				</li>
 			{/if}
 		</ul>

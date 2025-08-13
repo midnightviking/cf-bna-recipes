@@ -54,7 +54,7 @@
 							href="/menu/{menu.id}"
 							color="secondary">Print outs</a
 						>
-						<div class="cookbook-sort">
+						<!-- <div class="cookbook-sort">
 							<label for="cookbook-sort-select">Sort:</label>
 							<Select
 								id="cookbook-sort-select"
@@ -65,7 +65,7 @@
 								<Option value="alpha">Alphabetical</Option>
 								<Option value="category">By Category</Option>
 							</Select>
-						</div>
+						</div> -->
 						<ul class="menu-recipe-list">
 							{#each menu?.recipes as recipe}
                                 <li>

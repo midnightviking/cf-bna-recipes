@@ -44,6 +44,7 @@ export const recipes = sqliteTable('recipes', {
 	itemType: text('itemType'),
 	portionSize: text('portionSize'),
 	calories: text('calories'),
+	protein: text('protein'),
 	category: text('category'),
 	instructions: text('instructions'),
 	ccp: text('ccp'),

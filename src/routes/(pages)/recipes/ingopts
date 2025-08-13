@@ -1,0 +1,10 @@
+<Select
+										key={(ing) => `${ing ? ing.id : ""}`}
+										bind:value={new_ingredient}
+										label="Select Ingredient"
+										>
+										<!-- <Option value="">Select ingredient</Option> -->
+										{#each allIngredients as ing}
+										<Option value={ing.id}>{ing.name}</Option>
+										{/each}
+									</Select>

@@ -10,15 +10,17 @@ import { goto, invalidate, invalidateAll } from "$app/navigation";
 import { getContext, onMount, setContext } from "svelte";
 import RfExtensions from "$lib/components/recipe_form/rf_extensions.svelte";
 	import { useBannerActions } from "$lib/action-banner-state.svelte";
+	import Autocomplete from "@smui-extra/autocomplete";
+	import IngredientSelect from "$lib/components/recipe_form/ingredient_select.svelte";
 
 
-const itemTypes = ["bread", "veggie", "soup", "entree", "dessert","protein"];
+const itemTypes = ["bread", "veggie", "soup", "entree", "dessert","protein", "sauce/gravy", "starch"];
 const categories = ["breakfast","veggies", "starches", "entrees", "dessert"];
 
-let new_ingredient = $state("");
-let new_quantity = $state("");
-let new_unit = $state("");
-let ingSelected = $state("");
+let new_ingredient = $state(null);
+let new_quantity = $state(null);
+let new_unit = $state(null);
+let ingSelected = $state(null);
 let {
 	id = null,
 	title = "",
@@ -26,6 +28,7 @@ let {
 	itemType = "",
 	portionSize = "",
 	calories = "",
+	protein = "",
 	category = "",
 	instructions = "",
 	ccp = "",
@@ -42,12 +45,13 @@ let units = getContext("units");
 const addIngredientToRecipe = () => {
 	if (
 		!new_ingredient ||
-		new_unit === "" ||
+		new_unit === null ||
 		new_quantity <= 0 ||
-		new_quantity === ""
+		new_quantity === null
 	)
 		return;
-	const ing = allIngredients.find((i) => i.id == new_ingredient);
+	// const ing = allIngredients.find((i) => i.id == new_ingredient);
+	const ing = new_ingredient;
 	const unit = units.find((u) => u.id == new_unit);
 	if (!ing || !unit) return;
 
@@ -63,9 +67,9 @@ const addIngredientToRecipe = () => {
 	ingredient_list = [...ingredient_list,newIng] ?? [newIng];
 	
 	//reset
-	new_ingredient = "";
-	new_unit = "";
-	new_quantity = "";
+	new_ingredient = null;
+	new_unit = null;
+	new_quantity = null;
 };
 
 const removeIngredientFromRecipe = (index) => {
@@ -82,6 +86,7 @@ async function saveRecipe() {
 		itemType,
 		portionSize,
 		calories,
+		protein,
 		category,
 		instructions,
 		ccp,
@@ -125,6 +130,7 @@ function resetForm() {
 	itemType = "";
 	portionSize = "";
 	calories = "";
+	protein = "";
 	category = "";
 	instructions = "";
 	ccp = "";
@@ -140,7 +146,6 @@ const banner_actions = [
 	];
 
 useBannerActions(banner_actions);
-
 
 </script>
 
@@ -199,6 +204,7 @@ useBannerActions(banner_actions);
 						class="recipe-portion-size-field"
 					/>
 				</Cell>
+
 				<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 					<Textfield
 						bind:value={calories}
@@ -207,6 +213,15 @@ useBannerActions(banner_actions);
 						class="recipe-calories-field"
 					/>
 				</Cell>
+
+				<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
+					<Textfield
+						bind:value={protein}
+						label="Protein (g)"
+						class="recipe-protein-field"
+					/>
+				</Cell>
+
 				<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 					<Textfield
 						bind:value={minTemp}
@@ -214,8 +229,7 @@ useBannerActions(banner_actions);
 						class="recipe-min-temp-field"
 					/>
 				</Cell>
-				
-				
+							
 				<!-- Recipe Instructions -->
 				<Cell span={12}>
 					<Textfield
@@ -225,6 +239,7 @@ useBannerActions(banner_actions);
 						class="recipe-instructions-field"
 						style="width: 100%;"
 						helperLine$style="width: 100%;"
+						   input$rows={6}
 					/>
 				</Cell>
 				
@@ -237,6 +252,7 @@ useBannerActions(banner_actions);
 						class="recipe-ccp-field"
 						style="width: 100%;"
 						helperLine$style="width: 100%;"
+						   input$rows={4}
 					/>
 					<!-- check box for use generic, only show textfield if unchecked?-->
 				</Cell>
@@ -262,17 +278,9 @@ useBannerActions(banner_actions);
 							<InnerGrid>
 	
 								<Cell  spanDevices={{ desktop: 4, tablet: 8, phone: 4 }}>
-	<!-- update to combobox later-->
-									<Select
-										key={(ing) => `${ing ? ing.id : ""}`}
-										bind:value={new_ingredient}
-										label="Select Ingredient"
-										>
-										<!-- <Option value="">Select ingredient</Option> -->
-										{#each allIngredients as ing}
-										<Option value={ing.id}>{ing.name}</Option>
-										{/each}
-									</Select>
+									<IngredientSelect
+										bind:value={new_ingredient}/>
+									
 								</Cell>
 								<Cell  spanDevices={{ desktop: 2, tablet: 4, phone: 2}}>
 									<Textfield
@@ -312,6 +320,7 @@ useBannerActions(banner_actions);
 						</InnerGrid>
 						</div>
 						<div class="recipe-ingredient-list">
+							
 							<List
 								selectedIndex={ingSelected}
 								singleSelection
@@ -333,7 +342,6 @@ useBannerActions(banner_actions);
 													/>
 														<select
 															bind:value={ingredient_list[index].unit_id}
-															
 															>
 															{#each units as u}
 																<option value={u.id}>{u.name}</option>
@@ -343,7 +351,7 @@ useBannerActions(banner_actions);
 												{:else}
 													<span>
 														{ing.quantity}
-														{ing.unit_name}{ing.unit_name.endsWith('s') ? '' : '(s)'}
+														{ing.unit_name}
 													</span>
 												{/if}
 											</div>

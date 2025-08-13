@@ -24,6 +24,7 @@
 		itemType = "",
 		portionSize = "",
 		calories = "",
+		protein = "",
 		category = "",
 		instructions = "",
 		ccp = "",
@@ -85,6 +86,7 @@
 			itemType,
 			portionSize,
 			calories,
+			protein,
 			category,
 			instructions,
 			ccp,
@@ -132,6 +134,7 @@
 		itemType = "";
 		portionSize = "";
 		calories = "";
+		protein = "";
 		category = "";
 		instructions = "";
 		ccp = "";
@@ -220,6 +223,14 @@
 						label="Calories"
 						
 						class="recipe-calories-field"
+					/>
+				</Cell>
+
+				<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
+					<Textfield
+						bind:value={protein}
+						label="Protein (g)"
+						class="recipe-protein-field"
 					/>
 				</Cell>
 				<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
