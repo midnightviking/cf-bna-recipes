@@ -12,7 +12,7 @@
 	let ingredients = $state([]);
 	ingredients = data?.ingredients;
 
-    async function deleteIngredient(id){
+    async function deleteIngredient(id, index){
         if(!id) return;
         await fetch('/api/ingredients', {
             method: 'DELETE',
@@ -82,7 +82,7 @@
             {/if}
             <Meta>
                 <Button onclick={()=>{
-                    deleteIngredient(ingredient?.id)
+                    deleteIngredient(ingredient?.id, i)
                 }} >
                     <Icon tag="svg" viewBox="0 0 24 24">
 						<path fill="currentColor" d={mdiDelete} />

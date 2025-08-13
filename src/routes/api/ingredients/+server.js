@@ -14,8 +14,10 @@ export async function GET() {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
     const db = await getDb();
-    const result = await db.select().from(ingredients);
-    return new Response(JSON.stringify(result), {
+  const result = await db.select().from(ingredients);
+  // Alphabetically sort by name (case-insensitive)
+  const sorted = result.toSorted((a,b)=> (a.name||'').localeCompare(b.name||'', undefined, { sensitivity:'base' }));
+  return new Response(JSON.stringify(sorted), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
