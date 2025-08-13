@@ -289,9 +289,6 @@
 		}
 	}
 
-	//.ingredients {
-		// border-bottom:2px solid rgba(0,0,0,0.8);
-	//}
 
 	.recipe-block {
 		font-family: "Roboto";
