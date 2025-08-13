@@ -96,7 +96,7 @@
 	style="width:fit-content;"
 	id="print-recipe-{recipe.title}"
 >
-	<h3 class="recipe-title">{recipe.title} {#if extension}<small>({extension.name})</small>{/if}</h3>
+	<h3 class="recipe-title">{recipe.title} {#if extension?.name}<small>({extension.name})</small>{/if}</h3>
   
 
 	<div class="info-area">
@@ -289,9 +289,9 @@
 		}
 	}
 
-	.ingredients {
+	//.ingredients {
 		// border-bottom:2px solid rgba(0,0,0,0.8);
-	}
+	//}
 
 	.recipe-block {
 		font-family: "Roboto";
