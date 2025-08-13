@@ -85,7 +85,7 @@
 		{/each}
 	</div>
 	<hr/>
-	<h3>Dietary Extensions</h3>
+	<h3>Dietary Extensions <strong style="color:red;">(WIP, IRGNORE FOR NOW)</strong></h3>
 	<div class="scale-selection">
 		{#each extensions as extension, i }
 			<FormField class="checkfield">
