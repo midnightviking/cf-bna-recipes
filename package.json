@@ -52,6 +52,7 @@
 		"@libsql/client": "^0.14.0",
 		"drizzle-orm": "^0.40.0",
 		"print-js": "^1.6.0",
+		"sortablejs": "^1.15.6",
 		"svelte-printpdf": "^1.0.2-metadata"
 	}
 }

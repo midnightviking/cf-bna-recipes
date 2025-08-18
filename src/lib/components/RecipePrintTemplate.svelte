@@ -5,7 +5,8 @@
 
 	let { recipe, scale, extension = {} } = $props();
 	let units = getContext("units", []);
-
+	let sections = $state(recipe?.sections ?? []);
+	
 	const calculateServings = (_yield, value, unit_name = null) => {
 		let y = _yield / recipe.initialServings;
 		let display_unit = unit_name ?? "";
@@ -50,8 +51,6 @@
 		return result;
 	};
 
-	let recipe_ingredients = $derived(recipe.ingredients);
-
 	// Normalize protein display with trailing 'g'
 	let displayProtein = (() => {
 		if (!recipe?.protein) return '';
@@ -60,35 +59,27 @@
 		// If it's purely numeric, append space + g
 		return `${val} g`;
 	});
-	// If an extension is selected and has alternatives, replace matching ingredients
-	if (
-		extension &&
-		extension.id &&
-		recipe.extensions &&
-		Array.isArray(recipe.extensions)
-	) {
-		// Find the extension object by id
-		const extObj = recipe.extensions.find((e) => e.id === extension.id);
-		if (extObj && Array.isArray(extObj.ingredients)) {
-			extObj.ingredients.map((alt) => {
-				console.log(alt);
-				const idx = recipe_ingredients.findIndex(
-					(ing) => ing.ingredient_id === alt.original_ingredient
-				);
-				if (idx !== -1) {
-					console.log(alt);
-					recipe_ingredients[idx] = {
-						...alt,
-						name: alt.alternate_name,
-						quantity: alt?.quantity,
-						unit_id: alt?.unit_id,
-						unit_name: alt?.alternate_unit_name,
-			      		altered: true,
-					};
-				}
-			});
-		}
-	}
+
+	let x =0;
+	onMount(()=>{
+			console.log(`Running ${x} times` );
+			let t = {
+				id:-1, 
+				ordering:0,
+				ingredients: recipe?.ingredients?.filter((i)=>(i.section_id === -1 || !i.section)),
+				name:''
+			}
+			if(sections.length > 0){
+				sections.unshift(t);
+			}
+			else{
+				sections[0] = t;
+			}
+			
+			x++;
+	});
+	
+	
 </script>
 
 <div
@@ -97,7 +88,6 @@
 	id="print-recipe-{recipe.title}"
 >
 	<h3 class="recipe-title">{recipe.title} {#if extension?.name}<small>({extension.name})</small>{/if}</h3>
-  
 
 	<div class="info-area">
 		<ul>
@@ -125,69 +115,72 @@
 					<span>{recipe.calories}</span>
 				</li>
 			{/if}
-			<!-- {#if recipe?.protein} -->
+			{#if recipe?.protein}
 				<li>
 					<h3>Protein:</h3>
 					<span>{displayProtein()}</span>
 				</li>
-			<!-- {/if} -->
+			{/if}
 		</ul>
 	</div>
 
 	<div class="ingredients">
+		<div style="background:rgba(0,0,0,0.12); padding:0.25rem; margin-bottom:0.7rem">
+			
+		</div>
 		<DataTable square style="box-shadow:none;">
 			<Head class="yieldHead">
 				<Row>
 					<Cell style="background-color:inherit;"></Cell>
-					<Cell style="background-color:inherit;"
-						><Label>Yield:</Label></Cell
-					>
+					<Cell style="background-color:inherit;">
+						<Label>Yield:</Label>
+					</Cell>
 					{#each scale as servings}
-						<Cell style="">
-							<Label>
-								{servings}
-							</Label>
-						</Cell>
+						<Cell><Label>{servings}</Label></Cell>
 					{/each}
 				</Row>
 			</Head>
 			<Head>
 				<Row>
-					<Cell style="width:100%">
-						<Label>Ingredients</Label>
-					</Cell>
-					<Cell>
-						<Label>Unit</Label>
-					</Cell>
+					<Cell style="width:100%"><Label>Ingredients</Label></Cell>
+					<Cell><Label>Unit</Label></Cell>
 					{#each scale as servings}
 						<Cell>QTY</Cell>
 					{/each}
 				</Row>
 			</Head>
-			{#each recipe_ingredients as ingredient}
-				<Row>
-		  <Cell style="text-align:left">
-			{#if ingredient.altered}
-			  <strong>{ingredient.name}</strong>
-			{:else}
-			  {ingredient.name}
-			{/if}
-		  </Cell>
-					<Cell>
-			
-			{ingredient.unit_name}
-		  </Cell>
-					{#each scale as servings, i}
-						<Cell>
-							{@html calculateServings(
-								servings,
-								ingredient.quantity,
-								i !== 0 ? ingredient.unit_name : null
-							)}
+			{#each sections as section, s}
+				
+				{#if section.name !== ''}
+					<Row>
+						<Cell colspan={2 + scale.length} style="font-weight:bold; text-align:left;">{section.name}</Cell>
+						
+					</Row>
+				{/if}
+				
+				{#each section?.ingredients as ingredient}
+					<Row>
+						<Cell style="text-align:left">
+							{#if ingredient.altered}
+								<strong>{ingredient.name}</strong>
+							{:else}
+								{ingredient.name}
+							{/if}
 						</Cell>
-					{/each}
-				</Row>
+						<Cell>{ingredient.unit_name}</Cell>
+						{#each scale as servings, i}
+							<Cell>
+								{@html calculateServings(
+									servings,
+									ingredient.quantity,
+									i !== 0 ? ingredient.unit_name : null
+								)}
+							</Cell>
+						{/each}
+					</Row>
+				{/each}
 			{/each}
+			
 		</DataTable>
 	</div>
 

@@ -2,7 +2,7 @@ import { getDbInitError } from '$lib/server/db';
 // import { errorResponse } from '../+server.js';
 import { getRecipeWithIngredients } from '$lib/server/recipes.js';
 
-export async function GET({ params }) {
+export async function GET({ params, locals }) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
@@ -13,7 +13,7 @@ export async function GET({ params }) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    const recipe = await getRecipeWithIngredients(Number(id));
+  const recipe = await getRecipeWithIngredients(Number(id), locals);
     if (!recipe) {
       return new Response(JSON.stringify({ error: 'Recipe not found' }), {
         status: 404,
