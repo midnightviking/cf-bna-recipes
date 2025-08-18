@@ -6,7 +6,7 @@
 	let { recipe, scale, extension = {} } = $props();
 	let units = getContext("units", []);
 	let sections = $state(recipe?.sections ?? []);
-	
+
 	const calculateServings = (_yield, value, unit_name = null) => {
 		let y = _yield / recipe.initialServings;
 		let display_unit = unit_name ?? "";
@@ -52,34 +52,33 @@
 	};
 
 	// Normalize protein display with trailing 'g'
-	let displayProtein = (() => {
-		if (!recipe?.protein) return '';
+	let displayProtein = () => {
+		if (!recipe?.protein) return "";
 		let val = String(recipe.protein).trim();
 		if (/g$/i.test(val)) return val; // already has g
 		// If it's purely numeric, append space + g
 		return `${val} g`;
-	});
+	};
 
-	let x =0;
-	onMount(()=>{
-			console.log(`Running ${x} times` );
-			let t = {
-				id:-1, 
-				ordering:0,
-				ingredients: recipe?.ingredients?.filter((i)=>(i.section_id === -1 || !i.section)),
-				name:''
-			}
-			if(sections.length > 0){
-				sections.unshift(t);
-			}
-			else{
-				sections[0] = t;
-			}
-			
-			x++;
+	let x = 0;
+	onMount(() => {
+		// console.log(`Running ${x} times` );
+		let t = {
+			id: -1,
+			ordering: 0,
+			ingredients: recipe?.ingredients?.filter(
+				(i) => i.section_id === -1 || !i.section
+			),
+			name: "",
+		};
+		if (sections.length > 0) {
+			sections.unshift(t);
+		} else {
+			sections[0] = t;
+		}
+
+		x++;
 	});
-	
-	
 </script>
 
 <div
@@ -87,7 +86,10 @@
 	style="width:fit-content;"
 	id="print-recipe-{recipe.title}"
 >
-	<h3 class="recipe-title">{recipe.title} {#if extension?.name}<small>({extension.name})</small>{/if}</h3>
+	<h3 class="recipe-title">
+		{recipe.title}
+		{#if extension?.name}<small>({extension.name})</small>{/if}
+	</h3>
 
 	<div class="info-area">
 		<ul>
@@ -125,9 +127,9 @@
 	</div>
 
 	<div class="ingredients">
-		<div style="background:rgba(0,0,0,0.12); padding:0.25rem; margin-bottom:0.7rem">
-			
-		</div>
+		<div
+			style="background:rgba(0,0,0,0.12); padding:0.25rem; margin-bottom:0.7rem"
+		></div>
 		<DataTable square style="box-shadow:none;">
 			<Head class="yieldHead">
 				<Row>
@@ -150,14 +152,16 @@
 				</Row>
 			</Head>
 			{#each sections as section, s}
-				
-				{#if section.name !== ''}
+				{#if section.name !== ""}
 					<Row>
-						<Cell colspan={2 + scale.length} style="font-weight:bold; text-align:left;">{section.name}</Cell>
-						
+						<Cell
+							colspan={2 + scale.length}
+							style="font-weight:bold; text-align:left;"
+							>{section.name}</Cell
+						>
 					</Row>
 				{/if}
-				
+
 				{#each section?.ingredients as ingredient}
 					<Row>
 						<Cell style="text-align:left">
@@ -180,7 +184,6 @@
 					</Row>
 				{/each}
 			{/each}
-			
 		</DataTable>
 	</div>
 
@@ -281,7 +284,6 @@
 			}
 		}
 	}
-
 
 	.recipe-block {
 		font-family: "Roboto";
