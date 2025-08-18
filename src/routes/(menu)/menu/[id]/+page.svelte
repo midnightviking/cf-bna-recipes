@@ -9,12 +9,13 @@
 	import Checkbox from "@smui/checkbox";
 	import FormField from "@smui/form-field";
 	import LinearProgress from "@smui/linear-progress";
+	import MetricsPanel from "$lib/components/MetricsPanel.svelte";
 	let data = $props();
-	let {units, extensions, cookbook} = data.data;
+	let { units, extensions, cookbook } = data.data;
 	setContext("units", units);
-	
+
 	let print = $state(false);
-	
+
 	let scales = [
 		[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
 		[
@@ -58,18 +59,11 @@
 			1560, 1570, 1580, 1590, 1600, 1610,
 		],
 	];
-	
+
 	let selected_scales = $state([1]);
 	let selected_ext = $state([]);
-	
-	
 
-	const getExtensions = ()=>{
-
-	}
-
-	
-
+	const getExtensions = () => {};
 </script>
 
 <div class="options-shelf">
@@ -84,16 +78,16 @@
 			</FormField>
 		{/each}
 	</div>
-	<hr/>
-	<h3>Dietary Extensions <strong style="color:red;">(WIP, IRGNORE FOR NOW)</strong></h3>
+	<hr />
+	<h3>
+		Dietary Extensions <strong style="color:red;"
+			>(WIP, IRGNORE FOR NOW)</strong
+		>
+	</h3>
 	<div class="scale-selection">
-		{#each extensions as extension, i }
+		{#each extensions as extension, i}
 			<FormField class="checkfield">
-				<Checkbox 
-					bind:group={selected_ext}
-					value={i} 
-					touch
-				/>
+				<Checkbox bind:group={selected_ext} value={i} touch />
 				{#snippet label()}
 					{extension.name}
 				{/snippet}
@@ -119,34 +113,30 @@
 </div>
 
 <PrintPdf bind:print>
-	{#await cookbook then  }
-	
+	{#await cookbook then}
 		{#each cookbook.recipes as recipe}
 			{#each selected_scales.sort() as scale}
 				<Page>
-					<RecipePrintTemplate
-						{recipe}
-						scale={scales[scale]}						
-					/>
+					<RecipePrintTemplate {recipe} scale={scales[scale]} />
 				</Page>
-				
-			   {#each selected_ext as ext}
-				   {#if recipe.extensions && recipe.extensions.some(e => e.id === extensions[ext].id)}
-					   <!-- selected dietary extensions with replaced ingredients -->
-					   <Page>
-						   <RecipePrintTemplate
-							   {recipe}
-							   scale={scales[scale]}
-							   extension={extensions[ext]}
-						   />
-					   </Page>
-				   {/if}
-			   {/each}
-				
+
+				{#each selected_ext as ext}
+					{#if recipe.extensions && recipe.extensions.some((e) => e.id === extensions[ext].id)}
+						<!-- selected dietary extensions with replaced ingredients -->
+						<Page>
+							<RecipePrintTemplate
+								{recipe}
+								scale={scales[scale]}
+								extension={extensions[ext]}
+							/>
+						</Page>
+					{/if}
+				{/each}
 			{/each}
 		{/each}
 	{/await}
 </PrintPdf>
+<!-- <MetricsPanel /> -->
 
 <style>
 	.scale-selection {

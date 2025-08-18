@@ -1,19 +1,28 @@
 <script>
 	import Fab from "@smui/fab";
-	import Button, { Icon, Label } from "@smui/button";
+	import Button, {  Icon, Label } from "@smui/button";
 	import { goto, invalidate } from "$app/navigation";
 	import Editable from "$lib/components/Editable.svelte";
-	import RecipeFormDialog from "./RecipeFormDialog.svelte";
 	import Dialog, { Title, Content, Actions } from "@smui/dialog";
 	import DataTable, { Body, Cell, Head, Row } from "@smui/data-table";
-	import { mdiPlus } from "@mdi/js";
+	import {  mdiPlus,  mdiTextSearch } from "@mdi/js";
 	import { getContext, onMount, setContext } from "svelte";
-	
+	import { useBannerActions } from "$lib/action-banner-state.svelte.js";
+	import Textfield from "@smui/textfield";
+	import HelperText from "@smui/textfield/helper-text";
+	  
+
+
 	let { data } = $props();
-	let recipes = $derived(data.recipes);
 	let showform = $state(false);
 	let { units, ingredients } = data;
-
+	let search=$state("");
+	let recipes = $derived(data.recipes.filter((s)=>{
+		return search.trim() === "" ||
+			s.title?.toLowerCase().includes(search.toLowerCase()) ||
+			// s.category?.toLowerCase().includes(search.toLowerCase()) ||
+			s.ingredients?.some(ing => ing.name?.toLowerCase().includes(search.toLowerCase()));
+	}));
 	
 	let recipe_to_edit = $state({});
 	function openForm(recipe = {}) {
@@ -45,8 +54,7 @@
 		}
 	}
 
-	import { useBannerActions } from "$lib/action-banner-state.svelte.js";
-
+	
 	const banner_actions = [
 		{ label: "Add Recipe", icon: "", func: () => { goto('recipes/add'); } }
 	];
@@ -63,27 +71,33 @@
 	}}
 	style="position:fixed; right:0; bottom:20px; z-index:7"
 >
-	<Icon tag="svg" viewBox="0 0 24 24">
+	<!-- <Icon tag="svg" viewBox="0 0 24 24">
 		<path fill="currentColor" d={mdiPlus} />
-	</Icon>
+	</Icon> -->
 	<Label>Add Recipe</Label>
 </Fab>
 
-<!-- Destroying the form and recreating it, for now. Better binding on the inputs will avoid this in the future -->
-{#key showform}
-	<RecipeFormDialog
-        open={showform}
-		allIngredients={ingredients}
-		{units}
-		itemType={recipe_to_edit.itemType?.toLowerCase()}
-		category={recipe_to_edit.category?.toLowerCase()}
-		{closeForm}
-		{...recipe_to_edit}
-		{afterSave}
-	/>
-{/key}
-
 <h1>Recipes</h1>
+<Textfield 
+	
+	bind:value={search}
+	variant="outlined"
+	
+	style="width: 100%;"
+    helperLine$style="width: 100%;"
+	label="Search..."
+	>
+	{#snippet trailingIcon()}
+		<Icon tag="svg" viewBox="0 0 24 24" style="max-width:48px; padding:0.75rem 0.5rem">
+			<path fill="currentColor" d={mdiTextSearch} />
+		</Icon>
+	{/snippet}
+	{#snippet helper()}
+		<HelperText>Search Recipes...</HelperText>
+	{/snippet}
+	
+	</Textfield>
+	<br/>
 <div class="recipe-list">
 	{#if recipes?.length === 0}
 		<p>No recipes found.</p>
@@ -208,10 +222,40 @@
 			}
 		}
 	}
-
+/* 
 	* :global(.mdc-data-table__row) {
 		&:nth-child(even) {
 			background: rgba(0, 0, 0, 0.1);
 		}
 	}
+
+	 *
+    :global(
+      .shaped-outlined .mdc-notched-outline .mdc-notched-outline__leading
+		) {
+		border-radius: 28px 0 0 28px;
+		width: 28px;
+	}
+	*
+		:global(
+		.shaped-outlined .mdc-notched-outline .mdc-notched-outline__trailing
+		) {
+		border-radius: 0 28px 28px 0;
+	}
+	* :global(.shaped-outlined .mdc-notched-outline .mdc-notched-outline__notch) {
+		max-width: calc(100% - 28px * 2);
+	}
+	*
+		:global(
+		.shaped-outlined.mdc-text-field--with-leading-icon:not(
+			.mdc-text-field--label-floating
+			)
+			.mdc-floating-label
+		) {
+		left: 16px;
+	}
+	* :global(.shaped-outlined + .mdc-text-field-helper-line) {
+		padding-left: 32px;
+		padding-right: 28px;
+	} */
 </style>

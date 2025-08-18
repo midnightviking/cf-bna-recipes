@@ -52,6 +52,14 @@ export const recipes = sqliteTable('recipes', {
 	initialServings: integer('initialServings'),
 });
 
+// Sections within a recipe (e.g., Soup, Dumplings) with explicit ordering
+export const recipe_sections = sqliteTable('recipe_sections', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	recipe_id: integer('recipe_id').notNull(),
+	name: text('name').notNull(),
+	ordering: integer('ordering').notNull(),
+});
+
 export const cookbooks = sqliteTable('cookbooks', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull(),
@@ -65,6 +73,12 @@ export const recipe_ingredients = sqliteTable('recipe_ingredients', {
 	ingredient_id: integer('ingredient_id').notNull(),
 	quantity: numeric('quantity').notNull(),
 	unit: integer('unit').notNull(),
+	// Legacy: "order" existed previously; prefer "ordering" going forward
+	// order: integer('order'),
+	ordering: integer('ordering'),
+	section_id: integer('section_id'),
+
+	
 });
 
 export const cookbook_recipes = sqliteTable('cookbook_recipes', {

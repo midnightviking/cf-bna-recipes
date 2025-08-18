@@ -1,6 +1,7 @@
 <script>
 	import CookbookForm from '../../CookbookForm.svelte';
     import {setContext} from 'svelte';
+    
     let { data } = $props();
     let {cookbook, recipes} = data;
     
@@ -14,5 +15,6 @@
 		<CookbookForm
             {...cookbook}
             />
+        
 	</div>
 {/if}
