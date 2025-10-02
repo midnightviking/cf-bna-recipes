@@ -76,33 +76,50 @@
 		alternates = [],
 	} = $props();
 
+
 	let _localIndex = 0;
+	let realSectionIds = new Set((sections ?? []).map(s => s.id));
 	let ingredient_list = $state(
 		(ingredients ?? []).map((i) => ({
 			...i,
-			section_id: i.section_id ?? -1,
+			section_id: (i.section_id != null && realSectionIds.has(i.section_id)) ? i.section_id : -1,
 			_localIndex: _localIndex++,
 		}))
 	);
 
-	// let section_list = $state();
-	let section_list = $derived.by(()=>{
-		const s = [{
-			ordering: -1,
-			name: "Default",
-			el: {},
-			id: -1,
-		}];
 
-		sections.forEach((s) => {
+
+	let section_list = $state([]);
+
+	function updateSectionList() {
+		// Build section list with Default first
+		const s = [
+			{
+				ordering: -1,
+				name: "Default",
+				el: {},
+				id: -1,
+				ingredients: []
+			}
+		];
+		(sections ?? []).forEach((sec) => {
 			let section = {
-				...s,
-				ordering: s.ordering ?? 0,
-				el: s.el ?? {},
+				...sec,
+				ordering: sec.ordering ?? 0,
+				el: sec.el ?? {},
+				ingredients: []
 			};
 			s.push(section);
 		});
-		return s;
+		// Assign ingredients to sections
+		s.forEach(section => {
+			section.ingredients = ingredient_list.filter(i => i.section_id === section.id);
+		});
+		section_list = s;
+	}
+
+	$effect(() => {
+		updateSectionList();
 	});
 
 	onMount(async () => {
@@ -260,6 +277,8 @@
 	];
 
 	useBannerActions(banner_actions);
+
+	$inspect(section_list);
 </script>
 
 <h3>
@@ -530,6 +549,7 @@
 									bind:this={section.el}
 									data-section-id={section.id}
 								>
+								
 									{#each section.ingredients as ing, index}
 										<IngredientItem
 											{ing}
