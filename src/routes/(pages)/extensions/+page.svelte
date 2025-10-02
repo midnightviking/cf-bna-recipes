@@ -10,28 +10,22 @@ import { mdiPlus } from '@mdi/js';
     import List, {Item, Text, Graphic, Meta} from "@smui/list";
     import {mdiCircleEditOutline, mdiDelete} from "@mdi/js";
     import { invalidate } from "$app/navigation";
+    import {enhance} from "$app/forms";
+	import { bannerActions, useBannerActions } from '$lib/action-banner-state.svelte.js';
     let { data, form } = $props();
-    let extensions = $state([]);
-    extensions = data?.extensions;
+    let extensions = $state(data?.extensions ?? []);
+    let sorted = $derived(extensions.toSorted((a,b)=>a?.name.localeCompare(b?.name)));
 
     function addRestriction() {
         extensions.unshift({ id: undefined, name: '', editing: true });
     }
 
-    async function deleteRestriction(id){
-        if(!id) return;
-        await fetch('/api/extensions', {
-            method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            }).then((res)=>{
-                if(res.status === 200){
-                    extensions?.splice(index, 1);
-                    invalidate();
-                }
-            });
-    }
+    const banner_actions = [
+		{ label: "Add New Dietary Extension", icon: "", func: addRestriction },
+		
+	];
 
+	useBannerActions(banner_actions);
 </script>
 <Fab extended type="button" onclick={addRestriction} style="position:fixed; right:0; bottom:20px; z-index:7">
     <Icon tag="svg" viewBox="0 0 24 24">
@@ -44,10 +38,10 @@ import { mdiPlus } from '@mdi/js';
 {/if}
 <div class="ingredient-list">
 
-    {#key extensions}
+    {#key sorted}
     <List class="zebra-list" nonInteractive>
 
-        {#each extensions as restriction, i}
+        {#each sorted as restriction, i}
         <Item>
             {#if restriction?.editing}
             <form method="POST" action={restriction.id ? '?/save': '?/add'}><Text>
@@ -83,13 +77,34 @@ import { mdiPlus } from '@mdi/js';
             
             {/if}
             <Meta>
-                <Button onclick={()=>{
+
+                  <form
+                    action="?/delete"
+                    method="POST"
+                    use:enhance={() => {
+                    return ({ form, result }) => {
+                        if (result.type === 'success') {
+                            extensions = extensions.filter(e => e.id !== restriction.id);
+                        }
+                    };
+                    }}
+                >
+                    <input type="hidden" name="id" value={restriction?.id}>
+                    <Button>
+
+                        <Icon tag="svg" viewBox="0 0 24 24">
+                            <path fill="currentColor" d={mdiDelete} />
+                        </Icon>
+                    </Button>
+                </form>
+
+                <!-- <Button onclick={()=>{
                     deleteRestriction(restriction?.id)
                 }} >
                     <Icon tag="svg" viewBox="0 0 24 24">
                         <path fill="currentColor" d={mdiDelete} />
                     </Icon>
-                </Button>
+                </Button> -->
             </Meta>
         </Item>
         {/each}

@@ -85,22 +85,24 @@
 		}))
 	);
 
-	let section_list = $state([
-		{
+	// let section_list = $state();
+	let section_list = $derived.by(()=>{
+		const s = [{
 			ordering: -1,
 			name: "Default",
 			el: {},
 			id: -1,
-		},
-	]);
+		}];
 
-	sections.forEach((s) => {
-		let section = {
-			...s,
-			ordering: s.ordering ?? 0,
-			el: {},
-		};
-		section_list.push(section);
+		sections.forEach((s) => {
+			let section = {
+				...s,
+				ordering: s.ordering ?? 0,
+				el: s.el ?? {},
+			};
+			s.push(section);
+		});
+		return s;
 	});
 
 	onMount(async () => {
@@ -108,7 +110,7 @@
 			section.ingredients = ingredient_list.filter(
 				(i) => i.section_id === section.id
 			);
-			console.log(section);
+			
 			Sortable.create(section.el, {
 				group: {
 					name: section?.name ?? "section-" + i,
@@ -170,17 +172,7 @@
 		};
 
 		ingredient_list = [...ingredient_list, newIng] ?? [newIng];
-		const sectionIdx = section_list.findIndex(
-			(s) => s.id === new_ingredient_section
-		);
-		if (sectionIdx) {
-			if (!section_list[sectionIdx].ingredients)
-				section_list[sectionIdx].ingredients = [];
-			section_list[sectionIdx].ingredients = [
-				...section_list[sectionIdx].ingredients,
-				newIng,
-			];
-		}
+		
 		//reset
 		new_ingredient = null;
 		new_unit = null;
@@ -262,7 +254,7 @@
 			label: "Cancel",
 			icon: "",
 			func: () => {
-				history.back();
+				goto(history.back());
 			},
 		},
 	];
@@ -276,53 +268,7 @@
 <div id="recipe-dialog-content">
 	<div class="recipe-form" style="width:100%;">
 		<LayoutGrid>
-			<!-- Sections Management -->
-			<Cell span={12}>
-				<div class="recipe-sections">
-					<strong>Sections</strong>
-					<div class="sections-list">
-						{#each section_list as s, si}
-							<div class="section-row">
-								<input
-									type="text"
-									bind:value={section_list[si].name}
-									placeholder="Section name"
-								/>
-								<button
-									type="button"
-									title="Remove"
-									onclick={() => {
-										section_list.splice(si, 1);
-										section_list = [...section_list];
-									}}>Remove</button
-								>
-							</div>
-						{/each}
-					</div>
-					<div class="add-section">
-						<input
-							type="text"
-							bind:value={new_section_name}
-							placeholder="New section name"
-						/>
-						<button
-							type="button"
-							onclick={() => {
-								if ((new_section_name || "").trim()) {
-									section_list = [
-										...section_list,
-										{
-											name: new_section_name.trim(),
-											ordering: section_list.length,
-										},
-									];
-									new_section_name = "";
-								}
-							}}>Add Section</button
-						>
-					</div>
-				</div>
-			</Cell>
+			
 			<!-- Recipe Name Row-->
 			<Cell span={12}>
 				<Textfield
@@ -428,6 +374,55 @@
 			<Separator />
 			<Cell span={12}>
 				<strong>Ingredients</strong>
+			</Cell>
+			<!-- Sections Management -->
+			<Cell span={12}>
+				<div class="recipe-sections">
+					<strong>Sections</strong>
+					<div class="sections-list">
+						{#each section_list as s, si}
+							{#if s.id>0}
+							<div class="section-row">
+								<input
+									type="text"
+									bind:value={section_list[si].name}
+									placeholder="Section name"
+								/>
+								<button
+									type="button"
+									title="Remove"
+									onclick={() => {
+										section_list.splice(si, 1);
+										section_list = [...section_list];
+									}}>Remove</button
+								>
+							</div>
+							{/if}
+						{/each}
+					</div>
+					<div class="add-section">
+						<input
+							type="text"
+							bind:value={new_section_name}
+							placeholder="New section name"
+						/>
+						<button
+							type="button"
+							onclick={() => {
+								if ((new_section_name || "").trim()) {
+									section_list = [
+										...section_list,
+										{
+											name: new_section_name.trim(),
+											ordering: section_list.length,
+										},
+									];
+									new_section_name = "";
+								}
+							}}>Add Section</button
+						>
+					</div>
+				</div>
 			</Cell>
 			<!-- Recipe Ingredients -->
 			<Cell span={12}>
