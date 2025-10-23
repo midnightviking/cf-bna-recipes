@@ -1,6 +1,6 @@
 <script>
 	import { getContext, hasContext } from "svelte";
-	import { InnerGrid, Cell } from "@smui/layout-grid";
+	import LayoutGrid, { InnerGrid, Cell } from "@smui/layout-grid";
 	import Select, {Option} from "@smui/select";
 	import Button, {Icon, Label} from "@smui/button";
 	import Textfield from "@smui/textfield";
@@ -8,8 +8,6 @@
 	import { mdiPlus, mdiDelete } from "@mdi/js";
 	import { Separator } from "@smui/list";
 	import DataTable, { Body, Cell as TCell, Head, Row } from "@smui/data-table";
-
-
 
 	let {
 		recipe_id,
@@ -63,6 +61,9 @@
 
 
 </script>
+<InnerGrid>
+	<Cell span={12}>
+		
 <strong>Dietary Extenstions:</strong>
 <div class="">
 	
@@ -207,3 +208,6 @@
 		{/if}
 	</div>
 </div>
+
+	</Cell>
+</InnerGrid>

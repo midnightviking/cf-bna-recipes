@@ -1,0 +1,64 @@
+.recipe-ingredient-list {
+	border: 1px solid #444;
+	padding: 1.5rem;
+	margin: 2.25rem 0 1rem 0;
+	align-items: center;
+	font-family: "Roboto";
+	position: relative;
+
+	&::before {
+		content: "Ingredient List";
+		position: absolute;
+		display: block;
+		border: 1px solid #555;
+		top: -1rem;
+		left: 0.5rem;
+		background: white;
+		padding: 0.25rem 1.5rem;
+	}
+
+	li{
+		padding:0;
+	}
+}
+.recipe-form {
+	:global(.mdc-select, .mdc-text-field) {
+		width: 100%;
+	}
+}
+.recipe-sections {
+	margin: 1rem 0;
+}
+.recipe-sections .sections-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin: 0.5rem 0;
+}
+.recipe-sections .section-row {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+.recipe-sections .section-row input {
+	flex: 1;
+}
+.recipe-sections .add-section {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+.inner-ingredient-item{
+	
+	.mdc-icon-button{
+		
+		max-width: 36px;
+		padding:0;
+		margin-right:8px;
+		border-radius: 0;
+		i{
+			max-height:24px;
+		}
+	}
+}

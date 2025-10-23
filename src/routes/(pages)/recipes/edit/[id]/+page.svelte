@@ -3,6 +3,8 @@
     import { get } from 'svelte/store';
     import RecipeForm from '../../RecipeForm.svelte';
 	import { onMount, setContext } from 'svelte';
+    import '$lib/components/recipe_form/recipe_styles.scss';
+    
     let id = get(page).params.id;
     let data = get(page).data;
     let {recipe, all_ingredients, units, extensions} = data;
