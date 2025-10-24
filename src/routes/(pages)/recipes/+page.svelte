@@ -86,19 +86,14 @@
 {/if}
 
 <Textfield 
-	
-	bind:value={search}
-	variant="outlined"
-	
-	style="width: 100%;"
-    helperLine$style="width: 100%;"
-	label="Search..."
+		bind:value={search}
+		variant="outlined"
+		input$name="search"
+		style="width: 100%;"
+		helperLine$style="width: 100%;"
+		label="Search..."
 	>
-	{#snippet trailingIcon()}
-		<Icon tag="svg" viewBox="0 0 24 24" style="max-width:48px; padding:0.75rem 0.5rem">
-			<path fill="currentColor" d={mdiTextSearch} />
-		</Icon>
-	{/snippet}
+	
 	{#snippet helper()}
 		<HelperText>Search Recipes...</HelperText>
 	{/snippet}
