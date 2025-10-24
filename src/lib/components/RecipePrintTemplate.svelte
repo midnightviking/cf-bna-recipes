@@ -3,10 +3,10 @@
 	import DataTable, { Head, Body, Row, Cell, Label } from "@smui/data-table";
 	import { getContext, onMount } from "svelte";
 
-	let { recipe, scale, extension = {} } = $props();
+	let { recipe, scale, extension = $bindable(null) } = $props();
 	let units = getContext("units", []);
 	let sections = $state(recipe?.sections ?? []);
-
+	
 	const calculateServings = (_yield, value, unit_name = null) => {
 		let y = _yield / recipe.initialServings;
 		let display_unit = unit_name ?? "";
@@ -60,15 +60,41 @@
 		return `${val} g`;
 	};
 
+	function getIngredients(){
+		
+		let ingredients =  recipe?.ingredients?.filter(
+				(i) => i.section_id === -1 || !i.section
+			);
+
+		if (extension?.id) {
+			ingredients = ingredients.map(ingredient => {
+
+				// let alt = false;
+				let alt = recipe?.alternates?.find(a => a.extensions?.some(e => e === extension.id) && ingredient.ingredient_id === a.original_ingredient);
+
+				if (alt) {
+					return {
+						...ingredient,
+						name: alt.alternate_name || ingredient.name,
+						quantity: alt.quantity || ingredient.quantity,
+						unit_name: alt.alternate_unit_name || ingredient.unit_name,
+						original: ingredient.name,
+						altered: true
+					};
+				}
+				return ingredient;
+			});
+		}
+		return ingredients;
+	}
 	let x = 0;
 	onMount(() => {
+		
 		// console.log(`Running ${x} times` );
 		let t = {
 			id: -1,
 			ordering: 0,
-			ingredients: recipe?.ingredients?.filter(
-				(i) => i.section_id === -1 || !i.section
-			),
+			ingredients: getIngredients(),
 			name: "",
 		};
 		if (sections.length > 0) {
@@ -163,10 +189,12 @@
 				{/if}
 
 				{#each section?.ingredients as ingredient}
+					
 					<Row>
 						<Cell style="text-align:left">
 							{#if ingredient.altered}
 								<strong>{ingredient.name}</strong>
+								<br/><small>(replaces {ingredient.original})</small>
 							{:else}
 								{ingredient.name}
 							{/if}
@@ -184,6 +212,7 @@
 					</Row>
 				{/each}
 			{/each}
+			
 		</DataTable>
 	</div>
 

@@ -4,9 +4,16 @@
 	import List from "@smui/list";
 	import IngredientItem from "./IngredientItem.svelte";
 	
-	let { section, ingredient_list } = $props();
+	let { section, ingredient_list = $bindable([]) } = $props();
 	let ingSelected = $state(null);
 	let containerEl;
+
+	function removeIngredient(localIndex) {
+		const index = ingredient_list.findIndex(i => i._localIndex === localIndex);
+		if (index !== -1) {
+			ingredient_list = ingredient_list.filter((_, i) => i !== index);
+		}
+	}
 
 	onMount(() => {
 		if (containerEl instanceof HTMLElement) {
@@ -52,7 +59,7 @@
 					section_id={section.id}
 					onEdit={(i) => (ingSelected = i)}
 					onSave={() => (ingSelected = false)}
-					onRemove={(i) => {}}
+					onRemove={() => removeIngredient(ing._localIndex)}
 					onChangeQuantity={(i, val) => (ingredient_list[i].quantity = val)}
 					onChangeUnit={(i, val) => (ingredient_list[i].unit_id = val)}
 				/>

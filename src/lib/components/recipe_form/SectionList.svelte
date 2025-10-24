@@ -9,11 +9,29 @@
 
   function onSectionNameChange(si, val) {
     section_list[si].name = val;
-    section_list = [...section_list];
   }
+  export let ingredient_list;
+  
   function onRemoveSection(si) {
-    section_list.splice(si, 1);
-    section_list = [...section_list];
+    const removedSectionId = section_list[si].id;
+    
+    // Create a completely new array without the removed section
+    const newSectionList = [];
+    for (let i = 0; i < section_list.length; i++) {
+      if (i !== si) {
+        newSectionList.push(section_list[i]);
+      }
+    }
+    section_list = newSectionList;
+    
+    // Move ingredients from removed section to Default section (-1)
+    if (ingredient_list && removedSectionId) {
+      ingredient_list = ingredient_list.map(ing => 
+        ing.section_id === removedSectionId 
+          ? { ...ing, section_id: -1 }
+          : ing
+      );
+    }
   }
   function onAddSection() {
     if ((new_section_name || '').trim()) {
@@ -57,7 +75,7 @@
   <strong>Sections</strong>
   <div class="sections-list" bind:this={sectionRowsContainer}>
     {#each section_list as s, si}
-      {#if s.id > 0}
+      {#if s.id !== -1}
         <div class="section-row" data-section-index={si} bind:this={sectionRows[si]}>
           <input
             type="text"

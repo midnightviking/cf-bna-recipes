@@ -12,6 +12,18 @@ export async function upsertSections(db, recipeId, sections, isUpdate = false) {
   const sectionIdMap = new Map();
   
   if (!Array.isArray(sections) || sections.length === 0) {
+    if (isUpdate) {
+      // Load existing sections and delete them all
+      const existing = await db.select().from(recipe_sections).where(eq(recipe_sections.recipe_id, recipeId));
+      if (existing.length > 0) {
+        const existingIds = existing.map(e => e.id);
+        await db
+          .update(recipe_ingredients)
+          .set({ section_id: null })
+          .where(inArray(recipe_ingredients.section_id, existingIds));
+        await db.delete(recipe_sections).where(inArray(recipe_sections.id, existingIds));
+      }
+    }
     return sectionIdMap;
   }
 

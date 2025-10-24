@@ -42,53 +42,32 @@
 		}))
 	);
 
-	let section_list = $state([]);
-
-	function updateSectionList() {
-		// Use untrack to read section_list without creating a dependency
-		const existingUiSections = untrack(() => section_list.filter(s => s.id < -1));
-		
-		// Build section list with Default first
-		const s = [
-			{
-				ordering: -1,
-				name: "Default",
-				id: -1,
-				ingredients: [],
-			},
-		];
-		
-		// Add sections from props (existing saved sections with positive IDs)
-		(sections ?? []).forEach((sec) => {
-			let section = {
-				...sec,
-				ordering: sec.ordering ?? 0,
-				ingredients: [],
-			};
-			s.push(section);
-		});
-		
-		// Add any new sections created in the UI (with temporary negative IDs)
-		existingUiSections.forEach((sec) => {
-			s.push({
-				...sec,
-				ingredients: [],
-			});
-		});
-		
-		// Assign ingredients to sections
-		s.forEach((section) => {
-			section.ingredients = ingredient_list.filter(
-				(i) => i.section_id === section.id
-			);
-		});
-		section_list = s;
-	}
+	// Initialize section_list once from props
+	let section_list = $state([
+		{
+			ordering: -1,
+			name: "Default",
+			id: -1,
+			ingredients: [],
+		},
+		...(sections ?? []).map((sec) => ({
+			...sec,
+			ordering: sec.ordering ?? 0,
+			ingredients: [],
+		}))
+	]);
 
 	$effect(() => {
-		// Only track ingredient_list changes
-		ingredient_list.length;
-		updateSectionList();
+		// Update section ingredients when ingredient_list changes
+		// Track ingredient_list to detect changes
+		const ingredients = ingredient_list;
+		
+		// Update ingredients for each section without recreating section_list
+		for (const section of section_list) {
+			section.ingredients = ingredients.filter(
+				(i) => i.section_id === section.id
+			);
+		}
 	});
 
 	async function saveRecipe() {
@@ -192,7 +171,7 @@
 					bind:ingredient_list
 				/>
 				{/each}
-			<SectionList bind:section_list bind:new_section_name />
+			<SectionList bind:section_list bind:ingredient_list bind:new_section_name />
 		</div>
 		
 			<RfExtensions recipe_id={id} {ingredient_list} {alternates} />

@@ -127,12 +127,14 @@
 					{#if recipe.extensions && recipe.extensions.some((e) => e.id === extensions[ext].id)}
 						<!-- selected dietary extensions with replaced ingredients -->
 						<Page>
+							<h1> Ext : {recipe.extension}</h1>
 							<RecipePrintTemplate
 								{recipe}
 								scale={scales[scale]}
 								extension={extensions[ext]}
 							/>
 						</Page>
+						
 					{/if}
 				{/each}
 			{/each}
