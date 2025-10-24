@@ -10,6 +10,9 @@
 	import FormField from "@smui/form-field";
 	import LinearProgress from "@smui/linear-progress";
 	import MetricsPanel from "$lib/components/MetricsPanel.svelte";
+	import Accordion, {Header, Panel, Content} from "@smui-extra/accordion";
+	import IconButton,{Icon} from "@smui/icon-button";
+	import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
 	let data = $props();
 	let { units, extensions, cookbook } = data.data;
 	setContext("units", units);
@@ -67,36 +70,93 @@
 	let selected_ext = $state([]);
 
 	const getExtensions = () => {};
+
+	//panel
+	let p1 = $state(true);
+	let p2 = $state(false);
+
 </script>
 
 <div class="options-shelf">
-	<h3>Recipe Scale</h3>
-	<div class="scale-selection">
-		{#each scales as scale, i}
-			<FormField class="checkfield">
-				<Checkbox bind:group={selected_scales} value={i} />
-				{#snippet label()}
-					{scale[0]}-{scale[scale.length - 1]}
-				{/snippet}
-			</FormField>
-		{/each}
-	</div>
-	<hr />
-	<h3>
-		Dietary Extensions <strong style="color:red;"
-			>(WIP, IRGNORE FOR NOW)</strong
-		>
-	</h3>
-	<div class="scale-selection">
-		{#each extensions as extension, i}
-			<FormField class="checkfield">
-				<Checkbox bind:group={selected_ext} value={i} touch />
-				{#snippet label()}
-					{extension.name}
-				{/snippet}
-			</FormField>
-		{/each}
-	</div>
+
+	<hr />	
+	
+		<Accordion multiple>
+			<Panel
+				variant="outlined"
+				color="primary"
+				extend
+				bind:open={p1}
+			>
+				<Header>
+					<h4 style="margin:0">
+						Recipe Scale
+
+					</h4>
+					{#snippet description()}
+						<!-- Select the scales for the recipes. -->
+						{selected_scales.map(i => `${scales[i][0]}-${scales[i][scales[i].length - 1]}`).join(', ')}
+					{/snippet}
+					{#snippet icon()}
+						<IconButton toggle pressed={p1}>
+							<Icon tag="svg" viewBox="0 0 24 24" on={true}>
+								<path fill="black" d={mdiChevronDown} />								
+							</Icon>
+							<Icon tag="svg" viewBox="0 0 24 24">
+								<path fill="black" d={mdiChevronUp} />								
+							</Icon>
+						</IconButton>
+
+					{/snippet}
+				</Header>
+				<Content>
+					<div class="scale-selection">
+						{#each scales as scale, i}
+							<FormField class="checkfield">
+								<Checkbox bind:group={selected_scales} value={i} />
+								{#snippet label()}
+									{scale[0]}-{scale[scale.length - 1]}
+								{/snippet}
+							</FormField>
+						{/each}
+					</div>
+				</Content>
+			</Panel>
+			<Panel bind:open={p2}>
+				<Header>
+					Dietary Extensions <small>(WIP)</small>
+					{#snippet description()}
+						More like substitutions. Feature will be reworked if project moves forward.
+					{/snippet}
+					 {#snippet icon()}
+						<IconButton toggle pressed={p2}>
+							<Icon tag="svg" viewBox="0 0 24 24" on={true}>
+								<path fill="black" d={mdiChevronDown} />								
+							</Icon>
+							<Icon tag="svg" viewBox="0 0 24 24">
+								<path fill="black" d={mdiChevronUp} />								
+							</Icon>
+						</IconButton>
+
+					{/snippet}
+				</Header>
+				<Content>
+					<div class="scale-selection">
+
+						{#each extensions as extension, i}
+						<FormField class="checkfield">
+							<Checkbox bind:group={selected_ext} value={i} touch />
+							{#snippet label()}
+						{extension.name}
+						{/snippet}
+					</FormField>
+					{/each}
+				</div>
+				</Content>
+			</Panel>
+			
+		</Accordion>
+	
 	<div>
 		<Button
 			onclick={() => {
