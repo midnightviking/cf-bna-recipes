@@ -1,13 +1,31 @@
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch, params, depends }) {
     depends('app:recipes');
-    const recipes = await fetch('/api/recipes', { cache: "no-store" }).then((d) => d.json());
-    const ingredients = await fetch('/api/ingredients').then((d) => d.json());
-    const units = await fetch('/api/units').then((d) => d.json());
-    return {
-        recipes: recipes,
-        ingredients: ingredients,
-        units: units
+    
+    try {
+        const recipesResponse = await fetch('/api/recipes', { cache: "no-store" });
+        const recipes = await recipesResponse.json();
+        
+        const ingredientsResponse = await fetch('/api/ingredients');
+        const ingredients = await ingredientsResponse.json();
+        
+        const unitsResponse = await fetch('/api/units');
+        const units = await unitsResponse.json();
+        
+        return {
+            recipes: Array.isArray(recipes) ? recipes : [],
+            ingredients: Array.isArray(ingredients) ? ingredients : [],
+            units: Array.isArray(units) ? units : [],
+            error: recipes?.error || ingredients?.error || units?.error || null
+        };
+    } catch (error) {
+        console.error('Error loading recipes page:', error);
+        return {
+            recipes: [],
+            ingredients: [],
+            units: [],
+            error: error.message || 'Failed to load data'
+        };
     }
 }
 

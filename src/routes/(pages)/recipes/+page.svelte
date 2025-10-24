@@ -15,7 +15,7 @@
 
 	let { data } = $props();
 	let showform = $state(false);
-	let { units, ingredients } = data;
+	let { units, ingredients, error } = data;
 	let search=$state("");
 	let recipes = $derived(data.recipes.filter((s)=>{
 		return search.trim() === "" ||
@@ -78,6 +78,13 @@
 </Fab>
 
 <h1>Recipes</h1>
+
+{#if error}
+	<div class="error-message" style="background: #ffebee; border: 1px solid #ef5350; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+		<strong>Error:</strong> {error}
+	</div>
+{/if}
+
 <Textfield 
 	
 	bind:value={search}

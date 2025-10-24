@@ -20,7 +20,7 @@
 	
 	$effect(()=>{
 		selectedRecipeIds;
-	})
+	});
 
 	function handleRemoveRecipe(recipeId) {
 		
