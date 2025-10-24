@@ -4,9 +4,66 @@ import { recipes, recipe_ingredients, recipe_sections, alternate_ingredients, ex
 import { eq, inArray } from 'drizzle-orm';
 import { getRecipeWithIngredients } from '$lib/server/recipes.js';
 import { createRecipe, updateRecipe } from '$lib/server/recipe-operations.js';
+import { validateRecipeStructure, validateRecipeId } from '$lib/server/validation.js';
 
-function errorResponse(error) {
-  return new Response(JSON.stringify({ error: error.message || error.toString() }), {
+/**
+ * Format error response with appropriate HTTP status code
+ * @param {Error|Object} error - Error object or validation result
+ * @param {string} [context] - Context for logging (e.g., "POST /api/recipes")
+ * @returns {Response} JSON error response
+ */
+function errorResponse(error, context = '') {
+  // Handle validation errors (passed as objects)
+  if (error && typeof error === 'object' && 'valid' in error && !error.valid) {
+    console.error(`[Validation Error] ${context}:`, error.errors);
+    return new Response(JSON.stringify({
+      error: 'Validation failed',
+      code: 'VALIDATION_ERROR',
+      fields: error.errors,
+      timestamp: new Date().toISOString()
+    }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Handle database errors
+  if (error && typeof error === 'object' && error.message) {
+    let userMessage = error.message;
+    let code = 'INTERNAL_ERROR';
+    let status = 500;
+
+    if (error.message?.includes('UNIQUE constraint')) {
+      userMessage = 'This item already exists';
+      code = 'DUPLICATE_ENTRY';
+    } else if (error.message?.includes('FOREIGN KEY')) {
+      userMessage = 'Reference to non-existent item';
+      code = 'INVALID_REFERENCE';
+    } else if (error.message?.includes('NOT NULL')) {
+      userMessage = 'Missing required field';
+      code = 'MISSING_FIELD';
+    }
+
+    console.error(`[DB Error] ${context}:`, error.message);
+
+    return new Response(JSON.stringify({
+      error: userMessage,
+      code,
+      timestamp: new Date().toISOString(),
+      ...(process.env.DEV ? { debug: error.message } : {})
+    }), {
+      status,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Generic error
+  console.error(`[API Error] ${context}:`, error);
+  return new Response(JSON.stringify({
+    error: 'An unexpected error occurred',
+    code: 'INTERNAL_ERROR',
+    timestamp: new Date().toISOString()
+  }), {
     status: 500,
     headers: { 'Content-Type': 'application/json' }
   });
@@ -169,9 +226,16 @@ export async function POST({ request, locals }) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
-    const db = await getDb();
+
     const data = await request.json();
-    
+
+    // Validate input before database operations
+    const validation = validateRecipeStructure(data);
+    if (!validation.valid) {
+      return errorResponse(validation, 'POST /api/recipes');
+    }
+
+    const db = await getDb();
     const inserted = await createRecipe(db, data);
     const recipe = await getRecipeWithIngredients(inserted.id, locals);
     
@@ -180,7 +244,7 @@ export async function POST({ request, locals }) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, 'POST /api/recipes');
   }
 }
 
@@ -188,9 +252,29 @@ export async function PUT({ request, locals }) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
-    const db = await getDb();
+
     const data = await request.json();
-    
+
+    // Validate recipe ID is present and valid
+    const idValidation = validateRecipeId(data.id);
+    if (!idValidation.valid) {
+      return new Response(JSON.stringify({
+        error: idValidation.error,
+        code: 'INVALID_ID',
+        timestamp: new Date().toISOString()
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate input before database operations
+    const validation = validateRecipeStructure(data);
+    if (!validation.valid) {
+      return errorResponse(validation, 'PUT /api/recipes');
+    }
+
+    const db = await getDb();
     await updateRecipe(db, data);
     const recipe = await getRecipeWithIngredients(data.id, locals);
     
@@ -198,7 +282,7 @@ export async function PUT({ request, locals }) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, 'PUT /api/recipes');
   }
 }
 
@@ -206,15 +290,31 @@ export async function DELETE({ request }) {
   try {
     const dbInitError = getDbInitError();
     if (dbInitError) throw dbInitError;
-    const db = await getDb();
+
     const { id } = await request.json();
+
+    // Validate recipe ID
+    const idValidation = validateRecipeId(id);
+    if (!idValidation.valid) {
+      return new Response(JSON.stringify({
+        error: idValidation.error,
+        code: 'INVALID_ID',
+        timestamp: new Date().toISOString()
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const db = await getDb();
     await db.delete(recipe_ingredients).where(eq(recipe_ingredients.recipe_id, id));
     await db.delete(alternate_ingredients).where(eq(alternate_ingredients.recipe_id, id));
     await db.delete(recipes).where(eq(recipes.id, id));
+    
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, 'DELETE /api/recipes');
   }
 }

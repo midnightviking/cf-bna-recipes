@@ -1,35 +1,50 @@
 <script>
-  // Props: alternates (writable)
-  let {alternates=[]} = $props();
+	import { recipeStore } from '$lib/stores/recipeStore.js';
+	import { showError } from '$lib/services/toast.js';
 
-  function onAlternateChange(ai, val) {
-    alternates[ai].alternate_ingredient = val;
-    alternates = [...alternates];
-  }
-  function onRemoveAlternate(ai) {
-    alternates.splice(ai, 1);
-    alternates = [...alternates];
-  }
-  function onAddAlternate() {
-    alternates = [
-      ...alternates,
-      { original_ingredient: '', alternate_ingredient: '' },
-    ];
-  }
+	// Destructure stores
+	const { alternates } = recipeStore;
+
+	function onAlternateChange(alternateId, val) {
+		try {
+			recipeStore.updateAlternate(alternateId, { alternate_ingredient: val });
+		} catch (error) {
+			showError(error.message);
+		}
+	}
+
+	function onRemoveAlternate(alternateId) {
+		try {
+			recipeStore.deleteAlternate(alternateId);
+		} catch (error) {
+			showError(error.message);
+		}
+	}
+
+	function onAddAlternate() {
+		try {
+			recipeStore.addAlternate({
+				original_ingredient: '',
+				alternate_ingredient: '',
+			});
+		} catch (error) {
+			showError(error.message);
+		}
+	}
 </script>
 
 <div class="alternates-editor">
   <strong>Alternates</strong>
   <ul>
-    {#each alternates as alt, ai}
+    {#each $alternates as alt}
       <li>
         <input
           type="text"
-          bind:value={alt.alternate_ingredient}
+          value={alt.alternate_ingredient}
           placeholder="Alternate name"
-          oninput={e => onAlternateChange(ai, e.target.value)}
+          oninput={(e) => onAlternateChange(alt.id, e.target.value)}
         />
-        <button type="button" onclick={() => onRemoveAlternate(ai)}>Remove</button>
+        <button type="button" onclick={() => onRemoveAlternate(alt.id)}>Remove</button>
       </li>
     {/each}
   </ul>

@@ -1,10 +1,16 @@
 <script>
 	import { onMount } from 'svelte';
 	import Sortable from 'sortablejs';
+	import { recipeStore } from '$lib/stores/recipeStore.js';
+	import { showError } from '$lib/services/toast.js';
 	import List from "@smui/list";
 	import IngredientItem from "./IngredientItem.svelte";
 	
-	let { section, ingredient_list } = $props();
+	let { section } = $props();
+	
+	// Destructure stores
+	const { ingredients, sectionsByIngredient } = recipeStore;
+	
 	let ingSelected = $state(null);
 	let containerEl;
 
@@ -15,46 +21,69 @@
 				animation: 200,
 				dataIdAttr: 'data-id',
 				onEnd: function (evt) {
-					const movedItemId = evt.item.getAttribute('data-id');
+					const movedIngredientId = evt.item.getAttribute('data-id');
 					const newSectionId = evt.to.getAttribute('data-section-id');
-					const newIndex = evt.newIndex;
 					
-					// Find the ingredient that was moved
-					const movedIng = ingredient_list.find(i => i._localIndex == movedItemId);
-					
-					if (movedIng) {
-						// Update section_id if moved to a different section
-						if (newSectionId !== null) {
-							movedIng.section_id = parseInt(newSectionId);
+					try {
+						// Find the ingredient that was moved
+						const movedIng = $ingredients.find(i => i.ingredient_id == movedIngredientId);
+						
+						if (movedIng) {
+							// Update section_id if moved to a different section
+							const targetSectionId = newSectionId !== 'null' ? parseInt(newSectionId) : null;
+							recipeStore.updateIngredient(movedIng.ingredient_id, {
+								section_id: targetSectionId
+							});
 						}
-						
-						// Update ordering based on new position
-						movedIng.ordering = newIndex;
-						
-						// Trigger reactivity
-						ingredient_list = [...ingredient_list];
+					} catch (error) {
+						showError(error.message);
 					}
 				}
 			});
 		}
+	});
+
+	// Get ingredients for this section
+	$effect(() => {
+		// Re-render when section or ingredients change
+		void section;
+		void $ingredients;
 	});
 </script>
 
 <List>
 	<div bind:this={containerEl} data-section-id={section.id} class="ingredient-container">
 		{#each section.ingredients as ing, index}
-			<div data-id={ing._localIndex} class="ingredient-item-wrapper">
+			<div data-id={ing.ingredient_id} class="ingredient-item-wrapper">
 				<IngredientItem
 					{ing}
 					{index}
 					{ingSelected}
-					_localIndex={ing._localIndex}
+					ingredient_id={ing.ingredient_id}
 					section_id={section.id}
 					onEdit={(i) => (ingSelected = i)}
 					onSave={() => (ingSelected = false)}
-					onRemove={(i) => {}}
-					onChangeQuantity={(i, val) => (ingredient_list[i].quantity = val)}
-					onChangeUnit={(i, val) => (ingredient_list[i].unit_id = val)}
+					onRemove={(id) => {
+						try {
+							recipeStore.deleteIngredient(id);
+						} catch (error) {
+							showError(error.message);
+						}
+					}}
+					onChangeQuantity={(id, val) => {
+						try {
+							recipeStore.updateIngredient(id, { quantity: parseFloat(val) });
+						} catch (error) {
+							showError(error.message);
+						}
+					}}
+					onChangeUnit={(id, val) => {
+						try {
+							recipeStore.updateIngredient(id, { unit_id: parseInt(val) });
+						} catch (error) {
+							showError(error.message);
+						}
+					}}
 				/>
 			</div>
 		{/each}

@@ -8,7 +8,7 @@
 	let {
 		ing,
 		index,
-		_localIndex,
+		ingredient_id,
 		ingSelected = -1,
 
 		onEdit = () => {},
@@ -20,11 +20,11 @@
 
 		section_id = -1,
 	} = $props();
-	//   console.log(index, ing)
+
 	let units = getContext("units") ?? [];
 </script>
 
-<Item data-id={_localIndex} draggable={true} >
+<Item data-id={ingredient_id} draggable={true} >
 	<Text>
 		<div
 			class="inner-ingredient-item {ingSelected === index
@@ -52,14 +52,14 @@
 						style="width:60px;"
 						oninput={(e) =>
 							onChangeQuantity(
-								index,
+								ingredient_id,
 								Number(e.currentTarget.value)
 							)}
 					/>&nbsp;
 					<select
 						value={ing.unit_id}
 						onchange={(e) =>
-							onChangeUnit(index, Number(e.currentTarget.value))}
+							onChangeUnit(ingredient_id, Number(e.currentTarget.value))}
 					>
 						{#each units as u}
 							<option value={u.id}>{u.name}</option>
@@ -83,7 +83,7 @@
 				>
 			{/if}
 			<Button
-				onclick={() => onRemove(index)}
+				onclick={() => onRemove(ingredient_id)}
 				color="secondary"
 				variant="outlined"
 			>

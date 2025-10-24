@@ -3,6 +3,8 @@
 	import Select, { Option } from "@smui/select";
 	import LayoutGrid, { Cell } from "@smui/layout-grid";
 	import { Separator } from "@smui/list";
+	import { recipeStore } from "$lib/stores/recipeStore.js";
+
 	const itemTypes = [
 		"bread",
 		"veggie",
@@ -20,6 +22,8 @@
 		"entrees",
 		"dessert",
 	];
+
+	// Props are passed but not used - we use store directly
 	let {
 		title,
 		itemType,
@@ -32,16 +36,22 @@
 		ccp,
 		substitutions,
 		initialServings,
-		
-		
 	} = $props();
+
+	// Destructure store - these are actual stores that can be used with $
+	const { recipe } = recipeStore;
+
+	function handleUpdate(field, value) {
+		recipeStore.updateRecipe({ [field]: value });
+	}
 </script>
 
 <LayoutGrid>
 	<!-- Recipe Name Row-->
 	<Cell span={12}>
 		<Textfield
-			bind:value={title}
+			value={$recipe.title}
+			onchange={(e) => handleUpdate("title", e.target.value)}
 			helperLine$style="width: 100%;"
 			label="Title"
 			required
@@ -53,7 +63,8 @@
 	<!-- Recipe categorization-->
 	<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 		<Select
-			bind:value={itemType}
+			value={$recipe.itemType}
+			onchange={(e) => handleUpdate("itemType", e.target.value)}
 			label="Item Type"
 			class="recipe-item-type-field"
 		>
@@ -67,7 +78,8 @@
 	</Cell>
 	<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 		<Select
-			bind:value={category}
+			value={$recipe.category}
+			onchange={(e) => handleUpdate("category", e.target.value)}
 			label="Category"
 			class="recipe-category-field"
 			style="width: 100%;"
@@ -85,7 +97,8 @@
 	<!-- Recipe stats -->
 	<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 		<Textfield
-			bind:value={portionSize}
+			value={$recipe.portionSize}
+			onchange={(e) => handleUpdate("portionSize", e.target.value)}
 			label="Portion Size"
 			class="recipe-portion-size-field"
 		/>
@@ -93,7 +106,8 @@
 	
 			<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 				<Textfield
-					bind:value={calories}
+					value={$recipe.calories}
+					onchange={(e) => handleUpdate("calories", e.target.value)}
 					label="Calories"
 					class="recipe-calories-field"
 				/>
@@ -101,7 +115,8 @@
 
 			<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 				<Textfield
-					bind:value={protein}
+					value={$recipe.protein}
+					onchange={(e) => handleUpdate("protein", e.target.value)}
 					label="Protein (g)"
 					class="recipe-protein-field"
 				/>
@@ -109,7 +124,8 @@
 
 			<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 4 }}>
 				<Textfield
-					bind:value={minTemp}
+					value={$recipe.minTemp}
+					onchange={(e) => handleUpdate("minTemp", e.target.value)}
 					label="Minimum Temp (F)"
 					class="recipe-min-temp-field"
 				/>
@@ -119,7 +135,8 @@
 	<!-- Recipe Instructions -->
 	<Cell span={12}>
 		<Textfield
-			bind:value={instructions}
+			value={$recipe.instructions}
+			onchange={(e) => handleUpdate("instructions", e.target.value)}
 			label="Cooking Instructions"
 			textarea
 			class="recipe-instructions-field"
@@ -132,7 +149,8 @@
 	<!-- Recipe Safety -->
 	<Cell span={12}>
 		<Textfield
-			bind:value={ccp}
+			value={$recipe.ccp}
+			onchange={(e) => handleUpdate("ccp", e.target.value)}
 			textarea
 			label="Critical Control Point (CCP)"
 			class="recipe-ccp-field"

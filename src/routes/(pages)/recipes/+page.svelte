@@ -2,6 +2,8 @@
 	import Fab from "@smui/fab";
 	import Button, {  Icon, Label } from "@smui/button";
 	import { goto, invalidate } from "$app/navigation";
+	import { fetchWithRetry } from "$lib/services/api-client.js";
+	import { showSuccess, showError, showErrorFromResponse } from "$lib/services/toast.js";
 	import Editable from "$lib/components/Editable.svelte";
 	import Dialog, { Title, Content, Actions } from "@smui/dialog";
 	import DataTable, { Body, Cell, Head, Row } from "@smui/data-table";
@@ -44,12 +46,17 @@
 		const recipe = recipes[index];
 		if (confirm(`Really delete ${recipe.title}?`)) {
 			if (recipe.id) {
-				await fetch("/api/recipes", {
-					method: "DELETE",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ id: recipe.id }),
-				});
-				await invalidate("app:recipes");
+				try {
+					await fetchWithRetry("/api/recipes", {
+						method: "DELETE",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ id: recipe.id }),
+					});
+					showSuccess(`Deleted "${recipe.title}"`);
+					await invalidate("app:recipes");
+				} catch (error) {
+					showErrorFromResponse(error);
+				}
 			}
 		}
 	}

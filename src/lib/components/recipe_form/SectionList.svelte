@@ -2,72 +2,84 @@
 <script>
   import { onMount } from 'svelte';
   import Sortable from 'sortablejs';
+	import { recipeStore } from '$lib/stores/recipeStore.js';
+	import { showError } from '$lib/services/toast.js';
 	import Button from '@smui/button';
 	import Textfield from '@smui/textfield';
-  export let section_list;
-  export let new_section_name;
 
-  function onSectionNameChange(si, val) {
-    section_list[si].name = val;
-    section_list = [...section_list];
-  }
-  function onRemoveSection(si) {
-    section_list.splice(si, 1);
-    section_list = [...section_list];
-  }
-  function onAddSection() {
-    if ((new_section_name || '').trim()) {
-      // Generate a temporary negative ID for new sections
-      // Use timestamp to ensure uniqueness
-      const tempId = -1 * (Date.now() % 1000000);
-      section_list = [
-        ...section_list,
-        { 
-          id: tempId,
-          name: new_section_name.trim(), 
-          ordering: section_list.length 
-        },
-      ];
-      new_section_name = '';
-    }
-  }
+	// Destructure stores
+	const { sections } = recipeStore;
+	let new_section_name = $state('');
+	let sectionRowsContainer;
 
-  let sectionRows = [];
+	function onSectionNameChange(sectionId, val) {
+		try {
+			recipeStore.updateSection(sectionId, { name: val });
+		} catch (error) {
+			showError(error.message);
+		}
+	}
 
-  onMount(() => {
-    // Only enable sorting if there are at least 2 sections
-    if (sectionRows.length > 1) {
-      Sortable.create(sectionRowsContainer, {
-        animation: 200,
-        handle: '.section-row',
-        onEnd: (evt) => {
-          // Reorder section_list based on new DOM order
-          const newOrder = Array.from(sectionRowsContainer.children)
-            .map(row => row.getAttribute('data-section-index'))
-            .map(idx => parseInt(idx));
-          section_list = newOrder.map(i => section_list[i]);
-        }
-      });
-    }
-  });
-  let sectionRowsContainer;
+	function onRemoveSection(sectionId) {
+		try {
+			recipeStore.deleteSection(sectionId);
+		} catch (error) {
+			showError(error.message);
+		}
+	}
+
+	function onAddSection() {
+		if ((new_section_name || '').trim()) {
+			try {
+				recipeStore.addSection({
+					name: new_section_name.trim(),
+				});
+				new_section_name = '';
+			} catch (error) {
+				showError(error.message);
+			}
+		}
+	}
+
+	onMount(() => {
+		// Only enable sorting if there are at least 2 sections
+		if (sectionRowsContainer && sectionRowsContainer.children.length > 1) {
+			Sortable.create(sectionRowsContainer, {
+				animation: 200,
+				handle: '.section-row',
+				onEnd: (evt) => {
+					// Reorder sections based on new DOM order
+					try {
+						const newOrder = Array.from(sectionRowsContainer.children)
+							.map(row => row.getAttribute('data-section-id'))
+							.map(id => parseInt(id));
+						
+						// Update ordering for each section
+						newOrder.forEach((sectionId, index) => {
+							recipeStore.updateSection(sectionId, { ordering: index });
+						});
+					} catch (error) {
+						showError(error.message);
+					}
+				}
+			});
+		}
+	});
 </script>
 
 <div class="recipe-sections">
   <strong>Sections</strong>
   <div class="sections-list" bind:this={sectionRowsContainer}>
-    {#each section_list as s, si}
-      {#if s.id > 0}
-        <div class="section-row" data-section-index={si} bind:this={sectionRows[si]}>
-          <input
-            type="text"
-            bind:value={section_list[si].name}
-            placeholder="Section name"
-            oninput={e => onSectionNameChange(si, e.target.value)}
-          />
-          <button type="button" title="Remove" onclick={() => onRemoveSection(si)}>Remove</button>
-        </div>
-      {/if}
+    {#each $sections as s}
+      <div class="section-row" data-section-id={s.id}>
+        <input
+          type="text"
+          value={s.name}
+          placeholder="Section name"
+          oninput={(e) => onSectionNameChange(s.id, e.target.value)}
+        />
+        <button type="button" title="Remove" onclick={() => onRemoveSection(s.id)}>Remove</button>
+      </div>
     {/each}
   </div>
   <div class="add-section">

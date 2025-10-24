@@ -1,5 +1,7 @@
 <script>
 	import { getContext, hasContext } from "svelte";
+	import { recipeStore } from "$lib/stores/recipeStore.js";
+	import { showError } from "$lib/services/toast.js";
 	import LayoutGrid, { InnerGrid, Cell } from "@smui/layout-grid";
 	import Select, {Option} from "@smui/select";
 	import Button, {Icon, Label} from "@smui/button";
@@ -9,36 +11,47 @@
 	import { Separator } from "@smui/list";
 	import DataTable, { Body, Cell as TCell, Head, Row } from "@smui/data-table";
 
-	let {
-		recipe_id,
-		ingredient_list,
-		extensions=$bindable([]),
-		alternates=$bindable([])
-	}= $props();
+	// Destructure stores
+	const { ingredients, alternates } = recipeStore;
+	
 	let diets = $state([]);
 	let diets_value = $state([]);
 	let original_ingredient = $state('');
 	let alternate_ingredient = $state('');
 	let alternate_unit = $state('');
 	let alternate_quantity = $state('');
-	let extension_ingredients=$derived(alternates);
 
 	/* Context */
 	let allIngredients = getContext("all_ingredients");
 	let units = getContext("units");
 	let dietExtensions = (hasContext("extensions"))? getContext("extensions") : [];
 
-	const addReplacement=()=>{
-		extension_ingredients.push({
-			recipe_id: recipe_id, 
-			original_ingredient: original_ingredient,
-			alternate_ingredient: alternate_ingredient,
-			quantity: alternate_quantity,
-			unit_id: alternate_unit,
-			extensions: diets.map(d => d.id).join(",")
-		});
-	}
-
+	const addReplacement = () => {
+		try {
+			if (!original_ingredient || !alternate_ingredient) {
+				showError("Please select both original and alternate ingredients");
+				return;
+			}
+			
+			recipeStore.addAlternate({
+				original_ingredient: original_ingredient,
+				alternate_ingredient: alternate_ingredient,
+				quantity: alternate_quantity ? parseFloat(alternate_quantity) : 0,
+				unit_id: alternate_unit ? parseInt(alternate_unit) : null,
+				extensions: diets.map(d => d.id).join(",")
+			});
+			
+			// Reset form
+			original_ingredient = '';
+			alternate_ingredient = '';
+			alternate_quantity = '';
+			alternate_unit = '';
+			diets = [];
+			diets_value = [];
+		} catch (error) {
+			showError(error.message);
+		}
+	};
 
 	function display_ingredient_name(id){
 		const ingredient = allIngredients.find(ing => ing.id === id);
@@ -58,9 +71,8 @@
 			.map(ext => ext.name)
 			.join(', ');
 	}
-
-
 </script>
+
 <InnerGrid>
 	<Cell span={12}>
 		
@@ -72,11 +84,12 @@
 				<Select
 					key={(ing) => `${ing ? ing.ingredient_id : ""}`}
 					label="Select Ingredient to Replace"
-					bind:value={original_ingredient}
+					value={original_ingredient}
+					onchange={(e) => (original_ingredient = e.detail.value)}
 					>
 					
 					<Option />
-					{#each ingredient_list as ing}
+					{#each $ingredients as ing}
 						<Option value={ing.ingredient_id}>{ing.name}</Option>
 					{/each}
 				</Select>
@@ -88,7 +101,8 @@
 					<Cell  spanDevices={{ desktop: 4, tablet: 8, phone: 4 }}>
 						<Select
 							key={(ing) => `${ing ? ing.name : ""}`}
-							bind:value={alternate_ingredient}
+							value={alternate_ingredient}
+							onchange={(e) => (alternate_ingredient = e.detail.value)}
 							label="Select Ingredient"
 							>
 							<Option/>
@@ -99,7 +113,8 @@
 					</Cell>
 					<Cell  spanDevices={{ desktop: 2, tablet: 4, phone: 2}}>
 						<Textfield
-							bind:value={alternate_quantity}
+							value={alternate_quantity}
+							oninput={(e) => (alternate_quantity = e.target.value)}
 							label="Quantity"
 							type="number"
 							min="0"
@@ -108,7 +123,8 @@
 					<Cell spanDevices={{ desktop: 4, tablet: 4, phone: 2 }}>
 						<Select
 							key={(unit) => `${unit ? unit.name : ""}`}
-							bind:value={alternate_unit}
+							value={alternate_unit}
+							onchange={(e) => (alternate_unit = e.detail.value)}
 							label="Unit"
 						>
 							<!-- <Option value="">Select unit</Option> -->
@@ -158,7 +174,7 @@
 	<Separator/>
 
 	<div class="current_extensions">
-		{#if extension_ingredients.length > 0}
+		{#if $alternates.length > 0}
 			<DataTable>
 				<Head>
 					<Row>
@@ -170,7 +186,7 @@
 					</Row>
 				</Head>
 				<Body>
-					{#each extension_ingredients as alternate, i}
+					{#each $alternates as alternate}
 						<Row>
 							<TCell>
 								<small>
@@ -191,7 +207,13 @@
 								{extension_names(alternate.extensions)}
 							</TCell>
 							<TCell>
-								<Button onclick={() => extension_ingredients.splice(i, 1)}>
+								<Button onclick={() => {
+									try {
+										recipeStore.deleteAlternate(alternate.id);
+									} catch (error) {
+										showError(error.message);
+									}
+								}}>
 									<Icon>
 										<svg style="display: block;" viewBox="0 0 24 24">
 											<path fill="currentColor" d={mdiDelete} />

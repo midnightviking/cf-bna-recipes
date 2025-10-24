@@ -1,5 +1,7 @@
 <script>
 	import { getContext } from "svelte";
+	import { recipeStore } from "$lib/stores/recipeStore.js";
+	import { showError } from "$lib/services/toast.js";
 	import IngredientSelect from "./ingredient_select.svelte";
 	import Textfield from "@smui/textfield";
 	import Select, { Option } from "@smui/select";
@@ -7,13 +9,10 @@
 	import { mdiPlus } from "@mdi/js";
 	import { InnerGrid, Cell } from "@smui/layout-grid";
 
-	let {
-		section_list = $bindable([]),
-		ingredient_list = $bindable([]),
-		_localIndex = $bindable(0),
-	} = $props();
-
 	const units = getContext("units");
+	
+	// Destructure store
+	const { sectionsByIngredient } = recipeStore;
 
 	// Form state
 	let new_ingredient = $state(null);
@@ -29,30 +28,26 @@
 			new_quantity <= 0 ||
 			new_quantity === null
 		) {
+			showError("Please fill in all ingredient fields");
 			return;
 		}
 
-		const unit = units.find((u) => u.id == new_unit);
-		if (!unit) return;
+		try {
+			recipeStore.addIngredient({
+				ingredient_id: new_ingredient.id,
+				quantity: parseFloat(new_quantity),
+				unit_id: parseInt(new_unit),
+				section_id: new_ingredient_section > 0 ? new_ingredient_section : null,
+			});
 
-		// Create new ingredient entry
-		let newIng = {
-			ingredient_id: new_ingredient.id,
-			name: new_ingredient.name,
-			quantity: new_quantity,
-			unit_id: unit.id,
-			unit_name: unit.name,
-			section_id: new_ingredient_section,
-			_localIndex: _localIndex++,
-		};
-
-		ingredient_list = [...ingredient_list, newIng];
-
-		// Reset form
-		new_ingredient = null;
-		new_unit = null;
-		new_quantity = null;
-		new_ingredient_section = -1;
+			// Reset form
+			new_ingredient = null;
+			new_unit = null;
+			new_quantity = null;
+			new_ingredient_section = -1;
+		} catch (error) {
+			showError(error.message);
+		}
 	}
 </script>
 
@@ -102,11 +97,13 @@
 		</Cell>
 		<Cell spanDevices={{ desktop: 8 }}>
 			<Select
-				bind:value={new_ingredient_section}
+				value={new_ingredient_section}
+				onchange={(e) => (new_ingredient_section = parseInt(e.detail.value))}
 				key={(s) => `${s ? s.name : ""}`}
 				label="Section"
 			>
-				{#each section_list as section}
+				<Option value={-1}>None</Option>
+				{#each $sectionsByIngredient as section}
 					<Option value={section.id}>
 						{section.name}
 					</Option>

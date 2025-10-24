@@ -10,6 +10,8 @@ import Button from "@smui/button";
 import { onMount, setContext } from 'svelte';
 import { mdiBookOpenPageVariant, mdiChefHat, mdiScale, mdiFoodApple, mdiMenu, mdiPeanutOff, mdiFoodForkDrink } from '@mdi/js';
 import ActionBanner from "$lib/components/ActionBanner.svelte";
+import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
+import ToastDisplay from "$lib/components/ToastDisplay.svelte";
 
 let { children } = $props();
 let isOpen= $state(false);
@@ -57,9 +59,12 @@ let topAppBar = $state(null);
     <AutoAdjust {topAppBar} >
         <AppContent class="app-content">
             <ActionBanner/>
-            <main class="main-content">
-                {@render children?.()}
-            </main>
+            <ErrorBoundary>
+                <main class="main-content">
+                    {@render children?.()}
+                </main>
+            </ErrorBoundary>
         </AppContent>
     </AutoAdjust>
+    <ToastDisplay />
 </div>
