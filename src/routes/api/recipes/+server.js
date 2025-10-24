@@ -20,15 +20,14 @@ export async function GET({ locals }) {
 
     // 1. Fetch all recipes
     const allRecipes = await db.select().from(recipes);
-    const recipeIds = allRecipes.map(r => r.id);
 
-    if (recipeIds.length === 0) {
+    if (allRecipes.length === 0) {
       return new Response(JSON.stringify([]), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 2. Fetch all ingredients for all recipes (with joins)
+    // 2. Fetch all ingredients for all recipes (with joins) - no WHERE clause needed
     const allIngredients = await db
       .select({
         id: recipe_ingredients.id,
@@ -43,16 +42,14 @@ export async function GET({ locals }) {
       })
       .from(recipe_ingredients)
       .leftJoin(ingredientsTable, eq(recipe_ingredients.ingredient_id, ingredientsTable.id))
-      .leftJoin(unitsTable, eq(recipe_ingredients.unit, unitsTable.id))
-      .where(inArray(recipe_ingredients.recipe_id, recipeIds));
+      .leftJoin(unitsTable, eq(recipe_ingredients.unit, unitsTable.id));
 
-    // 3. Fetch all sections for all recipes
+    // 3. Fetch all sections for all recipes - no WHERE clause needed
     const allSections = await db
       .select()
-      .from(recipe_sections)
-      .where(inArray(recipe_sections.recipe_id, recipeIds));
+      .from(recipe_sections);
 
-    // 4. Fetch all alternates for all recipes (with joins)
+    // 4. Fetch all alternates for all recipes (with joins) - no WHERE clause needed
     const allAlternates = await db
       .select({
         ...alternate_ingredients,
@@ -62,8 +59,7 @@ export async function GET({ locals }) {
       })
       .from(alternate_ingredients)
       .leftJoin(ingredientsTable, eq(alternate_ingredients.alternate_ingredient, ingredientsTable.id))
-      .leftJoin(unitsTable, eq(alternate_ingredients.unit_id, unitsTable.id))
-      .where(inArray(alternate_ingredients.recipe_id, recipeIds));
+      .leftJoin(unitsTable, eq(alternate_ingredients.unit_id, unitsTable.id));
 
     // 5. Gather all extension IDs from alternates
     const extIds = Array.from(
@@ -74,10 +70,18 @@ export async function GET({ locals }) {
       )
     );
 
-    // 6. Fetch all extensions for these IDs
-    const allExtensions = extIds.length
-      ? await db.select().from(extensions).where(inArray(extensions.id, extIds))
-      : [];
+    // 6. Fetch all extensions for these IDs (batch if needed to avoid SQLite 999 variable limit)
+    let allExtensions = [];
+    if (extIds.length > 0) {
+      if (extIds.length <= 500) {
+        // Safe to use inArray for small sets
+        allExtensions = await db.select().from(extensions).where(inArray(extensions.id, extIds));
+      } else {
+        // Fetch all extensions and filter in memory for large sets
+        const allExts = await db.select().from(extensions);
+        allExtensions = allExts.filter(e => extIds.includes(e.id));
+      }
+    }
 
     // 7. Group and assemble results by recipe
     const ingredientsByRecipe = {};
